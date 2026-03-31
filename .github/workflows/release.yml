@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build / ${{ matrix.platform }}
@@ -51,3 +54,41 @@ jobs:
         with:
           name: terraforge-${{ matrix.platform }}
           path: dist/terraforge-${{ matrix.platform }}*
+
+  # Runs once after ALL build jobs finish — downloads every artifact and publishes one release
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: "TerraForge ${{ github.ref_name }}"
+          body: |
+            ## TerraForge ${{ github.ref_name }}
+
+            ### One-line install (macOS / Linux)
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/s6labs/terraforge/main/get-terraforge.sh | bash
+            ```
+
+            ### PyPI
+            ```bash
+            pip install terraforge
+            ```
+
+            ### Direct download
+            See the assets below for pre-built binaries.
+          files: dist/*
