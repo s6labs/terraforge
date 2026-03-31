@@ -20,12 +20,12 @@ jobs:
         include:
           # Linux x86-64
           - platform: linux-amd64
-            os: ubuntu-24.04
+            os: ubuntu-latest
             asset_stem: terraforge-linux-amd64
             ext: ""
             strip: "--strip"
 
-          # Linux ARM64 (GitHub-hosted ARM runner)
+          # Linux ARM64
           - platform: linux-arm64
             os: ubuntu-24.04-arm
             asset_stem: terraforge-linux-arm64
@@ -53,24 +53,21 @@ jobs:
             ext: ".exe"
             strip: ""
 
-    # Suppress Node.js 20 deprecation warnings (GitHub moved to Node 24 in 2026)
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
+          pip install pyinstaller build setuptools
           pip install -r requirements.txt
           pip install "fastapi>=0.110.0" "uvicorn[standard]>=0.29.0"
-          pip install pyinstaller
 
       - name: Build binary (Unix)
         if: runner.os != 'Windows'
@@ -155,7 +152,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -222,9 +219,9 @@ jobs:
       name: pypi
       url: https://pypi.org/p/terraforge
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
