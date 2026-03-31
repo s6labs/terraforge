@@ -12,46 +12,50 @@ permissions:
 jobs:
   # ─── Build standalone binaries ────────────────────────────────────────
   build:
-    name: Build / ${{ matrix.label }}
-    runs-on: ${{ matrix.runner }}
+    name: Build / ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
           # Linux x86-64
-          - label: linux-amd64
-            runner: ubuntu-22.04
+          - platform: linux-amd64
+            os: ubuntu-24.04
             asset_stem: terraforge-linux-amd64
             ext: ""
             strip: "--strip"
 
           # Linux ARM64 (GitHub-hosted ARM runner)
-          - label: linux-arm64
-            runner: ubuntu-22.04-arm
+          - platform: linux-arm64
+            os: ubuntu-24.04-arm
             asset_stem: terraforge-linux-arm64
             ext: ""
             strip: "--strip"
 
           # macOS Intel
-          - label: macos-intel
-            runner: macos-13
+          - platform: macos-intel
+            os: macos-13
             asset_stem: terraforge-macos-intel
             ext: ""
             strip: "--strip"
 
-          # macOS Apple Silicon
-          - label: macos-arm64
-            runner: macos-latest
+          # macOS Apple Silicon (M1/M2/M3)
+          - platform: macos-arm64
+            os: macos-14
             asset_stem: terraforge-macos-arm64
             ext: ""
             strip: "--strip"
 
           # Windows x86-64
-          - label: windows-amd64
-            runner: windows-latest
+          - platform: windows-amd64
+            os: windows-latest
             asset_stem: terraforge-windows-amd64
             ext: ".exe"
             strip: ""
+
+    # Suppress Node.js 20 deprecation warnings (GitHub moved to Node 24 in 2026)
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - uses: actions/checkout@v4
