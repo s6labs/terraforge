@@ -49,15 +49,34 @@ jobs:
         run: |
           pyinstaller --onefile --name terraforge-${{ matrix.platform }} terraforge.py
 
+          # Windows: PyInstaller outputs .exe — rename to drop the extension so
+          # the publish job can reference a consistent filename with .exe explicitly
+          if [[ "${{ matrix.platform }}" == "windows-amd64" ]]; then
+            mv dist/terraforge-windows-amd64.exe dist/terraforge-windows-amd64 || true
+          fi
+
+          # Generate SHA256 for this binary (Python: works on Linux, macOS, Windows)
+          cd dist
+          python3 -c "
+          import hashlib, pathlib
+          for f in sorted(pathlib.Path('.').glob('terraforge-${{ matrix.platform }}*')):
+              if f.is_file():
+                  digest = hashlib.sha256(f.read_bytes()).hexdigest()
+                  print(f'{digest}  {f.name}')
+          " > sha256-${{ matrix.platform }}.txt
+          cat sha256-${{ matrix.platform }}.txt
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: terraforge-${{ matrix.platform }}
-          path: dist/terraforge-${{ matrix.platform }}*
+          path: |
+            dist/terraforge-${{ matrix.platform }}
+            dist/sha256-${{ matrix.platform }}.txt
 
-  # Runs once after ALL build jobs finish — downloads every artifact and publishes one release
+  # Single job — runs once after ALL four builds succeed
   publish:
-    name: Publish GitHub Release
+    name: Publish Release
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -67,8 +86,13 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist/
-          merge-multiple: true
+          path: all-artifacts
+
+      - name: Consolidate SHA256 checksums
+        run: |
+          cat all-artifacts/*/sha256-*.txt | sort > SHA256SUMS.txt
+          echo "=== SHA256SUMS.txt ==="
+          cat SHA256SUMS.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -76,19 +100,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: "TerraForge ${{ github.ref_name }}"
-          body: |
-            ## TerraForge ${{ github.ref_name }}
-
-            ### One-line install (macOS / Linux)
-            ```bash
-            curl -fsSL https://raw.githubusercontent.com/s6labs/terraforge/main/get-terraforge.sh | bash
-            ```
-
-            ### PyPI
-            ```bash
-            pip install terraforge
-            ```
-
-            ### Direct download
-            See the assets below for pre-built binaries.
-          files: dist/*
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
+          files: |
+            all-artifacts/terraforge-linux-amd64/terraforge-linux-amd64
+            all-artifacts/terraforge-linux-arm64/terraforge-linux-arm64
+            all-artifacts/terraforge-macos-arm64/terraforge-macos-arm64
+            all-artifacts/terraforge-windows-amd64/terraforge-windows-amd64
+            SHA256SUMS.txt
