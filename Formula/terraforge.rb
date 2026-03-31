@@ -25,7 +25,7 @@ class Terraforge < Formula
   on_linux do
     if Hardware::CPU.arm?
       url "https://github.com/s6labs/terraforge/releases/download/v#{version}/terraforge-linux-arm64"
-      sha256 "REPLACE_WITH_SHA256_LINUX_ARM64"
+      sha256 "67811b543ae56dbfdb4eb727c6d0d0f5d8c9e20c037730204c13b811f3ab77a6"
 
       def install
         bin.install "terraforge-linux-arm64" => "terraforge"
