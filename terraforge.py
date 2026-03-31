@@ -42,6 +42,37 @@ from src.parsers.input_parser import parse_input, WorkspaceSpec
 from src.core.generator import generate_template, GenerationResult
 from src.validators.terraform import validate_hcl
 from src.core.coder_client import push_template, _get_coder_config
+from src import telemetry
+
+# ─── Version ──────────────────────────────────────────────────────────
+_VERSION_FILE = Path(__file__).parent / "VERSION"
+__version__ = _VERSION_FILE.read_text().strip() if _VERSION_FILE.exists() else "1.5.0"
+
+# ─── First-run welcome ────────────────────────────────────────────────
+_FIRST_RUN_FLAG = Path.home() / ".terraforge" / ".first_run_done"
+
+
+def _maybe_show_first_run_welcome() -> None:
+    """Show a one-time welcome message on first install."""
+    if _FIRST_RUN_FLAG.exists():
+        return
+    _FIRST_RUN_FLAG.parent.mkdir(parents=True, exist_ok=True)
+    _FIRST_RUN_FLAG.touch()
+
+    has_gemini = bool(os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
+    gemini_line = (
+        "[success]Detected Gemini API Key. Ready to forge your OpenNetwork![/success]"
+        if has_gemini
+        else "[dim]Tip: Set GEMINI_API_KEY for free zero-cost generation (1 500 req/day).[/dim]"
+    )
+    console.print(Panel(
+        f"[forge]Welcome to S6Labs.[/forge]\n\n"
+        f"{gemini_line}\n\n"
+        f"[dim]Run [bold]terraforge --detect[/bold] to scan for LLM providers.[/dim]\n"
+        f"[dim]Telemetry is on by default (anonymous). Opt out: [bold]terraforge telemetry --disable[/bold][/dim]",
+        title="[forge]First Forge[/forge]",
+        border_style="bright_black",
+    ))
 
 # ─── Theme ────────────────────────────────────────────────────────────
 THEME = Theme({
@@ -219,6 +250,10 @@ async def _run_generation(
     # Push to Coder
     if push:
         await _push_to_coder(result, spec)
+
+    # Anonymous heartbeat — fire-and-forget, never blocks
+    _cat = "LOCAL" if provider.type in (ProviderType.OLLAMA, ProviderType.LMSTUDIO, ProviderType.OPENAI_COMPATIBLE) else "CLOUD"
+    telemetry.fire(version=__version__, provider_category=_cat, success=True)
 
     return result
 
@@ -465,6 +500,7 @@ async def _async_main(
 ):
     if not no_banner:
         console.print(BANNER)
+        _maybe_show_first_run_welcome()
 
     # Detect providers
     providers = await _detect_and_display()
@@ -685,6 +721,50 @@ def coordinator_status(
     result = subprocess.run(args)
     if result.returncode != 0:
         raise typer.Exit(result.returncode)
+
+
+@app.command()
+def version():
+    """Print TerraForge version."""
+    console.print(f"terraforge {__version__}")
+
+
+@app.command()
+def telemetry_cmd(
+    disable: bool = typer.Option(False, "--disable", help="Opt out of anonymous telemetry"),
+    enable: bool = typer.Option(False, "--enable", help="Re-enable anonymous telemetry"),
+    status: bool = typer.Option(False, "--status", help="Show current telemetry setting"),
+):
+    """
+    📊 Manage anonymous usage telemetry.
+
+    TerraForge sends a minimal anonymous heartbeat after each successful forge
+    (OS family, provider category, version — no content, no IPs).
+
+      [dim]# Check current setting[/dim]
+      terraforge telemetry --status
+
+      [dim]# Opt out[/dim]
+      terraforge telemetry --disable
+
+      [dim]# Re-enable[/dim]
+      terraforge telemetry --enable
+    """
+    if disable:
+        telemetry.set_enabled(False)
+    elif enable:
+        telemetry.set_enabled(True)
+    else:
+        # --status or no flag
+        enabled = telemetry._is_enabled()
+        state = "[success]enabled[/success]" if enabled else "[warning]disabled[/warning]"
+        console.print(f"Telemetry: {state}")
+        if enabled:
+            console.print("[dim]To opt out: terraforge telemetry --disable[/dim]")
+
+
+# Register telemetry command with a consistent name
+app.command(name="telemetry")(telemetry_cmd)
 
 
 if __name__ == "__main__":

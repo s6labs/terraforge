@@ -4,33 +4,57 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "terraforge"
-version = "1.0.0"
+version = "1.5.0"
 description = "AI-Powered Coder Workspace Template Generator"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-keywords = ["terraform", "coder", "llm", "ai", "devops", "infrastructure"]
-dependencies = [
-    "httpx>=0.27.0",
-    "typer[all]>=0.12.0",
-    "rich>=13.7.0",
-    "pyyaml>=6.0.1",
-    "google-genai>=1.0.0",
+keywords = ["terraform", "coder", "llm", "ai", "devops", "infrastructure", "cde"]
+authors = [
+    { name = "S6Labs", email = "hello@s6labs.io" },
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "httpx>=0.28.1,<1.0",
+    "typer[all]>=0.24.0,<1.0",
+    "rich>=14.0.0,<15.0",
+    "pyyaml>=6.0.3,<7.0",
+    "google-genai>=1.0.0,<2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/s6labs/terraforge"
+Repository = "https://github.com/s6labs/terraforge"
+Issues = "https://github.com/s6labs/terraforge/issues"
+Changelog = "https://github.com/s6labs/terraforge/releases"
 
 [project.scripts]
 terraforge = "terraforge:app"
 
 [project.optional-dependencies]
 web = [
-    "fastapi>=0.110.0",
-    "uvicorn[standard]>=0.29.0",
+    "fastapi>=0.110.0,<1.0",
+    "uvicorn[standard]>=0.29.0,<1.0",
 ]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "black>=24.0",
     "ruff>=0.4",
+    "pyinstaller>=6.0",
+    "build>=1.0",
 ]
 
 [tool.setuptools]
@@ -39,6 +63,9 @@ py-modules = ["terraforge"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[tool.setuptools.package-data]
+"src.web" = ["*.html", "*.css", "*.js"]
 
 [tool.ruff]
 line-length = 100
