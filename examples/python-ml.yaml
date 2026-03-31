@@ -1,0 +1,43 @@
+# TerraForge Workspace Spec
+# Python Machine Learning Workspace
+
+name: python-ml
+display_name: Python ML Workspace
+description: Machine learning development environment with GPU support, Jupyter, and common ML frameworks
+
+target: docker
+region: us-east-1
+
+compute:
+  cpu: 8
+  memory_gb: 32
+  disk_gb: 100
+  gpu: true
+
+software:
+  language: python
+  version: "3.11"
+  base_image: nvidia/cuda:12.3.0-devel-ubuntu22.04
+  frameworks:
+    - pytorch
+    - transformers
+    - scikit-learn
+    - pandas
+    - numpy
+  tools:
+    - git
+    - curl
+    - build-essential
+    - cmake
+
+ide: code-server
+
+cost:
+  auto_stop_hours: 4
+  auto_delete_days: 14
+
+tags:
+  - ml
+  - python
+  - gpu
+  - jupyter

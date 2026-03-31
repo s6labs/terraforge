@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terraforge"
+version = "1.0.0"
+description = "AI-Powered Coder Workspace Template Generator"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["terraform", "coder", "llm", "ai", "devops", "infrastructure"]
+dependencies = [
+    "httpx>=0.27.0",
+    "typer[all]>=0.12.0",
+    "rich>=13.7.0",
+    "pyyaml>=6.0.1",
+    "google-genai>=1.0.0",
+]
+
+[project.scripts]
+terraforge = "terraforge:app"
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "black>=24.0",
+    "ruff>=0.4",
+]
+
+[tool.setuptools]
+py-modules = ["terraforge"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,27 @@
+{
+  "name": "go-microservices",
+  "display_name": "Go Microservices",
+  "description": "Go development environment for building microservices with Kubernetes tooling",
+  "target": "kubernetes",
+  "region": "us-east-1",
+  "compute": {
+    "cpu": 4,
+    "memory_gb": 8,
+    "disk_gb": 50
+  },
+  "software": {
+    "language": "go",
+    "version": "1.22",
+    "base_image": "ubuntu:22.04",
+    "tools": [
+      "git", "curl", "kubectl", "helm", "k9s",
+      "docker", "protoc", "buf", "grpcurl"
+    ]
+  },
+  "ide": "code-server",
+  "cost": {
+    "auto_stop_hours": 2,
+    "auto_delete_days": 7
+  },
+  "tags": ["go", "kubernetes", "microservices", "backend"]
+}

@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TerraForge — Private AI Cloud Platform</title>
+  <style>
+    /* ─── Reset & Base ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #000000;
+      --surface:      #0a0a0a;
+      --surface-2:    #111111;
+      --surface-3:    #1a1a1a;
+      --border:       #1e1e1e;
+      --border-2:     #2e2e2e;
+      --text:         #ffffff;
+      --text-muted:   #888888;
+      --text-dim:     #444444;
+      --orange:       #ff6b35;
+      --orange-2:     #e85c20;
+      --orange-glow:  rgba(255, 107, 53, 0.15);
+      --orange-tint:  rgba(255, 107, 53, 0.07);
+      --orange-border:rgba(255, 107, 53, 0.22);
+      --radius:       8px;
+      --radius-lg:    14px;
+      --font:         'Inter', system-ui, -apple-system, sans-serif;
+      --mono:         'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    code { font-family: var(--mono); }
+
+    /* ─── Navigation ──────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      padding: 0 48px;
+      gap: 40px;
+      background: rgba(0, 0, 0, 0.80);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .nav-logo-mark {
+      width: 34px; height: 34px;
+      background: var(--orange);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 900;
+      color: #000;
+      letter-spacing: -1px;
+    }
+    .nav-logo-name { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+    .nav-logo-tag {
+      font-size: 11px;
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--orange);
+      background: var(--orange-tint);
+      border: 1px solid var(--orange-border);
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+
+    .nav-links {
+      display: flex; gap: 28px;
+      list-style: none; flex: 1;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      transition: color 0.18s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-right { display: flex; gap: 10px; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+      border: none;
+      white-space: nowrap;
+    }
+    .btn-sm { padding: 7px 16px; }
+    .btn-md { padding: 11px 22px; font-size: 14px; }
+    .btn-lg { padding: 14px 28px; font-size: 15px; }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-2);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover { color: var(--text); background: var(--surface-3); border-color: #3a3a3a; }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #000;
+      font-weight: 700;
+    }
+    .btn-primary:hover { background: var(--orange-2); }
+
+    .btn-outline-orange {
+      background: transparent;
+      border: 1px solid var(--orange-border);
+      color: var(--orange);
+    }
+    .btn-outline-orange:hover { background: var(--orange-tint); }
+
+    /* ─── Hero ────────────────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      padding-top: 62px;
+      display: flex; align-items: center;
+      position: relative; overflow: hidden;
+    }
+
+    .hero-bg-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% -10%, rgba(255,107,53,.07) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 85% 70%, rgba(255,107,53,.04) 0%, transparent 50%);
+    }
+
+    .hero-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 56px 56px;
+      opacity: 0.45;
+      mask-image: radial-gradient(ellipse 85% 65% at 50% 45%, black 20%, transparent 90%);
+      -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 45%, black 20%, transparent 90%);
+    }
+
+    .hero-inner {
+      position: relative; z-index: 1;
+      max-width: 1200px; margin: 0 auto;
+      padding: 80px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.8px;
+      color: var(--orange); font-family: var(--mono);
+      margin-bottom: 22px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 18px; height: 1px;
+      background: var(--orange);
+    }
+
+    .hero-heading {
+      font-size: clamp(40px, 5.2vw, 68px);
+      font-weight: 900;
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+      margin-bottom: 22px;
+    }
+    .hero-heading em { font-style: normal; color: var(--orange); }
+
+    .hero-sub {
+      font-size: 17px; line-height: 1.75;
+      color: var(--text-muted);
+      max-width: 460px;
+      margin-bottom: 36px;
+    }
+
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Terminal */
+    .terminal-wrap {
+      position: relative;
+    }
+    .terminal-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: calc(var(--radius-lg) + 1px);
+      background: linear-gradient(135deg, var(--orange-border), transparent 50%);
+      z-index: 0;
+    }
+    .terminal {
+      position: relative; z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow:
+        0 0 80px rgba(255,107,53,.06),
+        0 32px 64px rgba(0,0,0,.7);
+    }
+    .terminal-bar {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      padding: 11px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .t-dots { display: flex; gap: 6px; }
+    .t-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .t-dot:nth-child(1) { background: #ff5f57; }
+    .t-dot:nth-child(2) { background: #ffbd2e; }
+    .t-dot:nth-child(3) { background: #28c840; }
+    .terminal-title {
+      flex: 1; text-align: center;
+      font-size: 11px; color: var(--text-dim); font-family: var(--mono);
+    }
+    .terminal-body {
+      padding: 22px 24px;
+      font-family: var(--mono); font-size: 12.5px; line-height: 1.85;
+    }
+    .t-p  { color: var(--text-dim); }
+    .t-c  { color: var(--text); }
+    .t-o  { color: var(--text-muted); }
+    .t-hi { color: var(--orange); }
+    .t-g  { color: #00d26a; }
+    .t-b  { color: #5eb8ff; }
+    .t-y  { color: #ffb800; }
+    .t-cursor {
+      display: inline-block; width: 7px; height: 13px;
+      background: var(--orange); vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+    /* ─── Stats Bar ───────────────────────────────────────────────── */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .stats-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+    }
+    .stat {
+      padding: 30px 24px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .stat:last-child { border-right: none; }
+    .stat-n {
+      font-size: 38px; font-weight: 900;
+      color: var(--orange); letter-spacing: -0.04em;
+      font-family: var(--mono); line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-l { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── Section Shell ───────────────────────────────────────────── */
+    .section { padding: 96px 48px; }
+    .section.bg-surface { background: var(--surface); }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+
+    .eyebrow {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2.2px;
+      color: var(--orange); font-family: var(--mono);
+      margin-bottom: 14px;
+    }
+    .section-heading {
+      font-size: clamp(26px, 3.2vw, 42px);
+      font-weight: 800; letter-spacing: -0.025em;
+      line-height: 1.15; margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 15px; color: var(--text-muted);
+      line-height: 1.75; max-width: 520px;
+      margin-bottom: 56px;
+    }
+
+    /* ─── Features Grid ───────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .feat {
+      background: var(--surface);
+      padding: 34px 30px;
+      position: relative;
+      transition: background 0.18s;
+    }
+    .feat:hover { background: var(--surface-2); }
+    .feat::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: transparent;
+      transition: background 0.18s;
+    }
+    .feat:hover::after { background: var(--orange); }
+
+    .feat-icon {
+      width: 42px; height: 42px;
+      background: var(--orange-tint);
+      border: 1px solid var(--orange-border);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 18px;
+    }
+    .feat-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .feat-desc  { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; }
+
+    /* ─── Architecture ────────────────────────────────────────────── */
+    .arch-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px; align-items: start;
+    }
+
+    .arch-stack { display: flex; flex-direction: column; }
+
+    .arch-layer {
+      display: flex; align-items: stretch;
+      border: 1px solid var(--border);
+      border-bottom: none;
+    }
+    .arch-layer:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+    .arch-layer:last-child  { border-bottom: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); }
+    .arch-layer:hover       { background: var(--surface-2); z-index: 1; }
+
+    .arch-badge {
+      width: 46px; flex-shrink: 0;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 900;
+      color: #000; writing-mode: vertical-rl;
+      text-transform: uppercase; letter-spacing: 1px;
+      font-family: var(--mono);
+    }
+    .arch-badge.muted { background: var(--surface-3); color: var(--text-dim); }
+
+    .arch-content { padding: 18px 22px; flex: 1; }
+    .arch-name    { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .arch-desc    { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+    .arch-tags    { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .tag {
+      font-size: 10.5px; font-family: var(--mono);
+      color: var(--text-dim); background: var(--surface-3);
+      border: 1px solid var(--border); padding: 2px 7px; border-radius: 3px;
+    }
+
+    .arch-cards { display: flex; flex-direction: column; gap: 18px; }
+    .arch-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px; background: var(--surface);
+    }
+    .arch-card-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.8px;
+      color: var(--orange); font-family: var(--mono);
+      margin-bottom: 7px;
+    }
+    .arch-card-title { font-size: 15px; font-weight: 700; margin-bottom: 7px; }
+    .arch-card-desc  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ─── How It Works ────────────────────────────────────────────── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      position: relative;
+    }
+    .steps::after {
+      content: '';
+      position: absolute;
+      top: 27px; left: 12%; right: 12%; height: 1px;
+      background: linear-gradient(90deg,
+        transparent,
+        var(--border) 20%,
+        var(--border) 80%,
+        transparent
+      );
+    }
+
+    .step { padding: 0 20px; text-align: center; }
+
+    .step-n {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1px solid var(--border-2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 900;
+      color: var(--text-dim); font-family: var(--mono);
+      margin: 0 auto 18px;
+      position: relative; z-index: 1;
+      transition: all 0.2s;
+    }
+    .step:hover .step-n {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--orange-tint);
+    }
+
+    .step-title { font-size: 14px; font-weight: 700; margin-bottom: 7px; }
+    .step-desc  { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ─── GPU Pool ────────────────────────────────────────────────── */
+    .gpu-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px; align-items: center;
+    }
+
+    .gpu-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .gpu-node {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color 0.18s;
+    }
+    .gpu-node:hover { border-color: var(--border-2); }
+
+    .node-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .node-dot.on  { background: #00d26a; box-shadow: 0 0 7px rgba(0,210,106,.55); }
+    .node-dot.busy{ background: var(--orange); box-shadow: 0 0 7px rgba(255,107,53,.45); }
+    .node-dot.off { background: var(--border-2); }
+
+    .node-info { flex-shrink: 0; min-width: 120px; }
+    .node-name  { font-size: 12.5px; font-weight: 600; font-family: var(--mono); }
+    .node-model { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    .node-bar { flex: 1; }
+    .bar-meta {
+      display: flex; justify-content: space-between;
+      font-size: 10.5px; color: var(--text-dim); font-family: var(--mono);
+      margin-bottom: 5px;
+    }
+    .bar-meta .val { color: var(--text-muted); }
+    .bar-track {
+      height: 5px; background: var(--surface-3);
+      border-radius: 3px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, var(--orange-2), var(--orange));
+      transition: width 0.6s ease;
+    }
+    .bar-fill.lo { background: linear-gradient(90deg, #00b86a, #00d26a); }
+    .bar-fill.hi { background: linear-gradient(90deg, #e85c20, #ff4444); }
+
+    .gpu-bullets { display: flex; flex-direction: column; gap: 11px; }
+    .gpu-bullet {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 13.5px; color: var(--text-muted);
+    }
+    .bullet-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+    }
+
+    /* ─── Build Phases ────────────────────────────────────────────── */
+    .phases {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .phase {
+      display: flex; align-items: stretch;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    .phase:last-child { border-bottom: none; }
+    .phase:hover { background: var(--surface-2); }
+
+    .phase-n {
+      width: 60px; flex-shrink: 0;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 900;
+      color: var(--text-dim); font-family: var(--mono);
+      transition: color 0.15s;
+    }
+    .phase:hover .phase-n { color: var(--orange); }
+
+    .phase-body { padding: 22px 28px; flex: 1; }
+    .phase-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .phase-ac   { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
+
+    .phase-badge {
+      padding: 22px 24px;
+      display: flex; align-items: center; flex-shrink: 0;
+    }
+    .badge {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      padding: 4px 9px; border-radius: 4px;
+      font-family: var(--mono);
+    }
+    .badge-orange {
+      background: var(--orange-tint);
+      color: var(--orange);
+      border: 1px solid var(--orange-border);
+    }
+    .badge-green {
+      background: rgba(0,210,106,.07);
+      color: #00d26a;
+      border: 1px solid rgba(0,210,106,.2);
+    }
+    .badge-blue {
+      background: rgba(94,184,255,.07);
+      color: #5eb8ff;
+      border: 1px solid rgba(94,184,255,.2);
+    }
+
+    /* ─── Agents ──────────────────────────────────────────────────── */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .agent-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      background: var(--surface);
+      transition: border-color 0.18s;
+    }
+    .agent-card:hover { border-color: var(--border-2); }
+    .agent-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+    .agent-icon {
+      width: 48px; height: 48px;
+      background: var(--orange-tint);
+      border: 1px solid var(--orange-border);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .agent-name   { font-size: 18px; font-weight: 800; margin-bottom: 3px; }
+    .agent-tagline{ font-size: 12px; color: var(--text-muted); }
+    .agent-desc   { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; margin-bottom: 18px; }
+    .agent-provides { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    /* ─── CTA ─────────────────────────────────────────────────────── */
+    #cta {
+      padding: 120px 48px;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    #cta::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 55% at 50% 55%,
+        rgba(255,107,53,.07) 0%, transparent 70%);
+    }
+    .cta-inner { max-width: 600px; margin: 0 auto; position: relative; z-index: 1; }
+    .cta-heading {
+      font-size: clamp(30px, 4vw, 52px);
+      font-weight: 900; letter-spacing: -0.03em; line-height: 1.1;
+      margin-bottom: 18px;
+    }
+    .cta-heading em { font-style: normal; color: var(--orange); }
+    .cta-sub { font-size: 16px; color: var(--text-muted); line-height: 1.75; margin-bottom: 36px; }
+
+    .cta-cmd {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 13.5px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+    .cmd-prompt { color: var(--orange); }
+    .cmd-text   { flex: 1; color: var(--text); }
+    .copy-btn {
+      background: var(--surface-3);
+      border: 1px solid var(--border-2);
+      color: var(--text-muted);
+      padding: 5px 12px; border-radius: 4px;
+      font-size: 11px; font-family: var(--mono);
+      cursor: pointer; transition: all 0.18s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: #3a3a3a; }
+    .copy-btn.copied { color: #00d26a; border-color: rgba(0,210,106,.3); }
+
+    .cta-actions { display: flex; gap: 10px; justify-content: center; }
+
+    /* ─── Footer ──────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 36px 48px;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px;
+    }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-mark {
+      width: 28px; height: 28px;
+      background: var(--orange); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 11px;
+      font-weight: 900; color: #000;
+    }
+    .footer-name { font-size: 14px; font-weight: 700; }
+    .footer-ver  { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+    .footer-copy { font-size: 12px; color: var(--text-dim); }
+    .footer-nav  { display: flex; gap: 22px; }
+    .footer-nav a {
+      font-size: 13px; color: var(--text-muted);
+      text-decoration: none; transition: color 0.18s;
+    }
+    .footer-nav a:hover { color: var(--text); }
+
+    /* ─── Scroll Animations ───────────────────────────────────────── */
+    .fade-in {
+      opacity: 0; transform: translateY(16px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .fade-in.in { opacity: 1; transform: translateY(0); }
+
+    /* ─── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .arch-layout { grid-template-columns: 1fr; gap: 40px; }
+      .gpu-layout  { grid-template-columns: 1fr; }
+      .agents-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      .section { padding: 64px 24px; }
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; padding: 48px 24px; }
+      .hero-sub   { max-width: 100%; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .stat:nth-child(2) { border-right: none; }
+      .stat:nth-child(3) { border-top: 1px solid var(--border); }
+      .stat:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      .steps::after { display: none; }
+      #cta { padding: 80px 24px; }
+      footer { padding: 28px 24px; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-nav { flex-wrap: wrap; justify-content: center; }
+    }
+
+    @media (max-width: 600px) {
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .hero-heading { font-size: 38px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ NAV ════════════════════════════════════════════════════ -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-mark">TF</div>
+      <span class="nav-logo-name">TerraForge</span>
+      <span class="nav-logo-tag">v2.0</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#agents">Agents</a></li>
+      <li><a href="#phases">Roadmap</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="/app" class="btn btn-ghost btn-sm">Open App</a>
+      <a href="#cta" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+  </nav>
+
+
+  <!-- ═══ HERO ═══════════════════════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-bg-glow"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-inner">
+
+      <div>
+        <div class="hero-eyebrow">Private AI Cloud Platform</div>
+        <h1 class="hero-heading">
+          Your devices.<br>
+          One <em>AI cloud.</em>
+        </h1>
+        <p class="hero-sub">
+          TerraForge turns a heterogeneous collection of personal devices into a secure,
+          self-managing AI infrastructure — shared GPUs, autonomous agents, and
+          developer workspaces at zero marginal cost.
+        </p>
+        <div class="hero-actions">
+          <a href="#cta" class="btn btn-primary btn-lg">Deploy Your Network</a>
+          <a href="#architecture" class="btn btn-ghost btn-lg">Architecture →</a>
+        </div>
+      </div>
+
+      <div class="terminal-wrap">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="t-dots">
+              <div class="t-dot"></div>
+              <div class="t-dot"></div>
+              <div class="t-dot"></div>
+            </div>
+            <div class="terminal-title">terraforge — node status</div>
+          </div>
+          <div class="terminal-body">
+<div><span class="t-p">$ </span><span class="t-c">terraforge status</span></div>
+<div>&nbsp;</div>
+<div><span class="t-hi">● TerraForge v2.0</span>  <span class="t-o">3 nodes · 120 GB GPU pool</span></div>
+<div>&nbsp;</div>
+<div><span class="t-o">  NODE              GPU                VRAM</span></div>
+<div><span class="t-g">  ✓</span> <span class="t-c">home-server</span>   <span class="t-o">RTX 4090 24 GB   </span><span class="t-hi"> 4.2 / 24 GB</span></div>
+<div><span class="t-g">  ✓</span> <span class="t-c">mac-studio</span>    <span class="t-o">M2 Ultra UMA     </span><span class="t-hi">12.0 / 96 GB</span></div>
+<div><span class="t-g">  ✓</span> <span class="t-c">nas-box</span>       <span class="t-o">CPU only         </span><span class="t-o">       —</span></div>
+<div>&nbsp;</div>
+<div><span class="t-o">  AGENTS</span></div>
+<div><span class="t-g">  ✓</span> <span class="t-c">openfang</span>      <span class="t-o">home-server:4200  running</span></div>
+<div><span class="t-y">  ⟳</span> <span class="t-c">openclaw</span>      <span class="t-o">migrating → mac-studio</span></div>
+<div>&nbsp;</div>
+<div><span class="t-o">  JOBS   </span><span class="t-g">2 active</span><span class="t-o">  /  </span><span class="t-o">14 completed today</span></div>
+<div><span class="t-p">$ </span><span class="t-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══ STATS ═══════════════════════════════════════════════════ -->
+  <div class="stats-bar">
+    <div class="stats-inner">
+      <div class="stat">
+        <div class="stat-n">20</div>
+        <div class="stat-l">Platform features</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">4</div>
+        <div class="stat-l">Architecture layers</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">&lt;5m</div>
+        <div class="stat-l">Node join time</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">$0</div>
+        <div class="stat-l">Coordinator / month</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══ FEATURES ════════════════════════════════════════════════ -->
+  <section id="features" class="section bg-surface">
+    <div class="section-inner">
+      <div class="eyebrow">Capabilities</div>
+      <h2 class="section-heading">Everything your AI stack needs</h2>
+      <p class="section-sub">Six core pillars that turn a collection of personal devices into production-grade AI infrastructure.</p>
+
+      <div class="features-grid">
+        <div class="feat fade-in">
+          <div class="feat-icon">⚡</div>
+          <div class="feat-title">Opportunistic GPU Pool</div>
+          <div class="feat-desc">Idle GPU cycles across every node are aggregated into a shared compute pool. VRAM-aware routing dispatches jobs to the best available hardware automatically — no Kubernetes required.</div>
+        </div>
+        <div class="feat fade-in">
+          <div class="feat-icon">🔒</div>
+          <div class="feat-title">Secure Mesh Network</div>
+          <div class="feat-desc">Headscale + WireGuard (ChaCha20Poly1305) forms an encrypted private network. No node ever exposes a public port. All traffic stays inside your tailnet — MagicDNS included.</div>
+        </div>
+        <div class="feat fade-in">
+          <div class="feat-icon">🤖</div>
+          <div class="feat-title">Agent Hosting Layer</div>
+          <div class="feat-desc">OpenFang and OpenClaw run 24/7 on the best available node, automatically migrating when hardware goes offline or load spikes. Deploy from the dashboard in one click.</div>
+        </div>
+        <div class="feat fade-in">
+          <div class="feat-icon">🖥️</div>
+          <div class="feat-title">Developer Workspaces</div>
+          <div class="feat-desc">Coder workspaces provisioned on any node from your browser in under 60 seconds. GPU-backed templates generated by the TerraForge LLM engine — including the one you're reading now.</div>
+        </div>
+        <div class="feat fade-in">
+          <div class="feat-icon">🧠</div>
+          <div class="feat-title">Multi-Provider LLM Router</div>
+          <div class="feat-desc">Ollama, Anthropic, OpenRouter, LM Studio — all unified behind a single OpenAI-compatible endpoint. Local-first with automatic cloud fallback. Zero config changes to switch providers.</div>
+        </div>
+        <div class="feat fade-in">
+          <div class="feat-icon">☁️</div>
+          <div class="feat-title">Cloud GPU Fallback</div>
+          <div class="feat-desc">When local resources are exhausted, GCP spot instances auto-provision via Terraform, join the network, execute the job, and self-destruct after 15 minutes idle. Opt-in with cost preview.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ ARCHITECTURE ════════════════════════════════════════════ -->
+  <section id="architecture" class="section">
+    <div class="section-inner">
+      <div class="eyebrow">System Design</div>
+      <h2 class="section-heading">Four layers. Zero dependencies on each other.</h2>
+      <p class="section-sub">Each layer has a clean API contract. Independently deployable, independently testable.</p>
+
+      <div class="arch-layout">
+
+        <div class="arch-stack">
+          <div class="arch-layer">
+            <div class="arch-badge">L4</div>
+            <div class="arch-content">
+              <div class="arch-name">Interface</div>
+              <div class="arch-desc">Web dashboard, CLI, VS Code tasks. Real-time updates via SSE and WebSocket.</div>
+              <div class="arch-tags">
+                <span class="tag">React</span>
+                <span class="tag">WebSocket</span>
+                <span class="tag">SSE</span>
+                <span class="tag">Vite</span>
+              </div>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="arch-badge muted">L3</div>
+            <div class="arch-content">
+              <div class="arch-name">Platform</div>
+              <div class="arch-desc">Node registry, job scheduler, agent orchestrator. Single source of truth for the whole network.</div>
+              <div class="arch-tags">
+                <span class="tag">FastAPI</span>
+                <span class="tag">SQLite</span>
+                <span class="tag">Python 3.11</span>
+              </div>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="arch-badge muted">L2</div>
+            <div class="arch-content">
+              <div class="arch-name">Network</div>
+              <div class="arch-desc">Headscale VPN mesh. Private IP assignment, NAT traversal, key exchange. MagicDNS for hostname resolution.</div>
+              <div class="arch-tags">
+                <span class="tag">Headscale</span>
+                <span class="tag">WireGuard</span>
+                <span class="tag">Tailscale</span>
+              </div>
+            </div>
+          </div>
+          <div class="arch-layer">
+            <div class="arch-badge muted">L1</div>
+            <div class="arch-content">
+              <div class="arch-name">Compute</div>
+              <div class="arch-desc">Node agent daemon. Hardware reporting, job execution, LLM serving, agent process management.</div>
+              <div class="arch-tags">
+                <span class="tag">Python</span>
+                <span class="tag">nvidia-smi</span>
+                <span class="tag">Ollama</span>
+                <span class="tag">systemd</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-cards">
+          <div class="arch-card fade-in">
+            <div class="arch-card-label">Coordinator</div>
+            <div class="arch-card-title">GCP Free Tier — $0 / month</div>
+            <div class="arch-card-desc">e2-micro (2 vCPU · 1 GB RAM · 30 GB disk). Runs Headscale + TerraForge Server in Docker. Coordination-only — all compute lives on your nodes.</div>
+          </div>
+          <div class="arch-card fade-in">
+            <div class="arch-card-label">Security</div>
+            <div class="arch-card-title">WireGuard everywhere</div>
+            <div class="arch-card-desc">ChaCha20Poly1305 on every packet. No node exposes a public port. Coordinator surface: port 443 only. Dashboard is tailnet-only — unreachable from the open internet.</div>
+          </div>
+          <div class="arch-card fade-in">
+            <div class="arch-card-label">Scheduling</div>
+            <div class="arch-card-title">VRAM-aware priority routing</div>
+            <div class="arch-card-desc">40% GPU availability · 30% load · 20% latency · 10% preference. Exponential backoff retries. Cloud fallback triggers only when the entire local pool is exhausted.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ HOW IT WORKS ════════════════════════════════════════════ -->
+  <section id="how" class="section bg-surface">
+    <div class="section-inner">
+      <div class="eyebrow">Node Join Flow</div>
+      <h2 class="section-heading">Any device joins in under 5 minutes.</h2>
+      <p class="section-sub">One command. OS auto-detected. No manual networking configuration required.</p>
+
+      <div class="steps">
+        <div class="step fade-in">
+          <div class="step-n">01</div>
+          <div class="step-title">Run the Join Script</div>
+          <div class="step-desc"><code style="color:var(--orange);font-size:12px;">curl .../join | bash</code><br><br>OS detected automatically. Tailscale client installed silently in the background.</div>
+        </div>
+        <div class="step fade-in">
+          <div class="step-n">02</div>
+          <div class="step-title">Pre-Auth Key Issued</div>
+          <div class="step-desc">The script calls the TerraForge API. A single-use Headscale pre-auth key is generated and expires after 1 hour.</div>
+        </div>
+        <div class="step fade-in">
+          <div class="step-n">03</div>
+          <div class="step-title">VPN Tunnel Up</div>
+          <div class="step-desc">Node receives a private <code style="color:var(--text-muted);font-size:11px;">100.64.x.x</code> address. WireGuard tunnel established. Reachable by hostname via MagicDNS.</div>
+        </div>
+        <div class="step fade-in">
+          <div class="step-n">04</div>
+          <div class="step-title">Live in Dashboard</div>
+          <div class="step-desc">TerraForge Agent starts as a system service, reports hardware, and appears in the dashboard — GPU bars and all — within seconds.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ GPU POOL ═════════════════════════════════════════════════ -->
+  <section id="gpu" class="section">
+    <div class="section-inner">
+      <div class="gpu-layout">
+
+        <div>
+          <div class="eyebrow">GPU Pool</div>
+          <h2 class="section-heading">Every idle cycle — pooled.</h2>
+          <p class="section-sub" style="margin-bottom:28px;">
+            nvidia-smi, rocm-smi, and Apple Silicon unified memory are detected, normalized, and made available as a shared resource.
+          </p>
+          <div class="gpu-bullets">
+            <div class="gpu-bullet">
+              <div class="bullet-dot" style="background:#00d26a;"></div>
+              VRAM-aware routing: 7B ≈ 6 GB · 13B ≈ 10 GB · 70B ≈ 40 GB at 4-bit
+            </div>
+            <div class="gpu-bullet">
+              <div class="bullet-dot" style="background:var(--orange);"></div>
+              Idle threshold: &lt;10% utilization for 5 consecutive heartbeats
+            </div>
+            <div class="gpu-bullet">
+              <div class="bullet-dot" style="background:#5eb8ff;"></div>
+              Cloud fallback provisions a GCP L4 spot node in under 3 minutes
+            </div>
+            <div class="gpu-bullet">
+              <div class="bullet-dot" style="background:var(--text-dim);"></div>
+              Auto-destroys after 15 min idle — cost capped, opt-in only
+            </div>
+          </div>
+        </div>
+
+        <div class="gpu-list">
+          <div class="gpu-node">
+            <div class="node-dot on"></div>
+            <div class="node-info">
+              <div class="node-name">home-server</div>
+              <div class="node-model">RTX 4090 · 24 GB</div>
+            </div>
+            <div class="node-bar">
+              <div class="bar-meta"><span>VRAM</span><span class="val">4.2 / 24 GB</span></div>
+              <div class="bar-track"><div class="bar-fill lo" style="width:18%"></div></div>
+            </div>
+          </div>
+          <div class="gpu-node">
+            <div class="node-dot on"></div>
+            <div class="node-info">
+              <div class="node-name">mac-studio</div>
+              <div class="node-model">M2 Ultra · 96 GB UMA</div>
+            </div>
+            <div class="node-bar">
+              <div class="bar-meta"><span>MEM</span><span class="val">12 / 96 GB</span></div>
+              <div class="bar-track"><div class="bar-fill lo" style="width:13%"></div></div>
+            </div>
+          </div>
+          <div class="gpu-node">
+            <div class="node-dot busy"></div>
+            <div class="node-info">
+              <div class="node-name">workstation</div>
+              <div class="node-model">RTX 3090 · 24 GB</div>
+            </div>
+            <div class="node-bar">
+              <div class="bar-meta"><span>VRAM</span><span class="val">18.4 / 24 GB</span></div>
+              <div class="bar-track"><div class="bar-fill hi" style="width:77%"></div></div>
+            </div>
+          </div>
+          <div class="gpu-node" style="opacity:0.45; border-style:dashed;">
+            <div class="node-dot off"></div>
+            <div class="node-info">
+              <div class="node-name">gcp-l4-spot</div>
+              <div class="node-model">NVIDIA L4 · 24 GB</div>
+            </div>
+            <div class="node-bar">
+              <div class="bar-meta"><span>STATUS</span><span class="val" style="color:var(--text-dim);">standby</span></div>
+              <div class="bar-track"><div class="bar-fill lo" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ AGENTS ══════════════════════════════════════════════════ -->
+  <section id="agents" class="section bg-surface">
+    <div class="section-inner">
+      <div class="eyebrow">Agent Integrations</div>
+      <h2 class="section-heading">First-class agent hosting.</h2>
+      <p class="section-sub">TerraForge doesn't replace your agents — it gives them infrastructure. Deploy, monitor, and provide GPU compute to OpenFang and OpenClaw from one place.</p>
+
+      <div class="agents-grid">
+        <div class="agent-card fade-in">
+          <div class="agent-header">
+            <div class="agent-icon">🦊</div>
+            <div>
+              <div class="agent-name">OpenFang</div>
+              <div class="agent-tagline">Production-grade Agent OS · Rust · ~32 MB binary</div>
+            </div>
+          </div>
+          <div class="agent-desc">14 crates · 7 autonomous Hands · 40 channel adapters · 16 security layers. TerraForge selects the best GPU node, injects the LLM endpoint config, and monitors the process.</div>
+          <div class="agent-provides">
+            <span class="badge badge-orange">Node selection</span>
+            <span class="badge badge-orange">LLM routing</span>
+            <span class="badge badge-orange">GPU dispatch</span>
+            <span class="badge badge-orange">Process monitor</span>
+          </div>
+        </div>
+        <div class="agent-card fade-in">
+          <div class="agent-header">
+            <div class="agent-icon">🦞</div>
+            <div>
+              <div class="agent-name">OpenClaw</div>
+              <div class="agent-tagline">Personal AI assistant · Gateway WebSocket · 40+ channels</div>
+            </div>
+          </div>
+          <div class="agent-desc">WhatsApp, Telegram, Slack, iMessage and 37 more. Already uses Tailscale — TerraForge's Headscale is a drop-in replacement. Multi-instance for multiple family members.</div>
+          <div class="agent-provides">
+            <span class="badge badge-blue">Always-on hosting</span>
+            <span class="badge badge-blue">Tailnet exposure</span>
+            <span class="badge badge-blue">LLM routing</span>
+            <span class="badge badge-blue">Auto-restart</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ BUILD PHASES ═════════════════════════════════════════════ -->
+  <section id="phases" class="section">
+    <div class="section-inner">
+      <div class="eyebrow">Roadmap</div>
+      <h2 class="section-heading">7 phases. Ordered by dependency.</h2>
+      <p class="section-sub">Each phase has defined acceptance criteria. A phase begins only when the previous one passes.</p>
+
+      <div class="phases">
+        <div class="phase">
+          <div class="phase-n">01</div>
+          <div class="phase-body">
+            <div class="phase-name">GCP Coordinator Deployment</div>
+            <div class="phase-ac">Terraform generated + applied. Headscale running. TerraForge Server healthy. Let's Encrypt cert valid.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">02</div>
+          <div class="phase-body">
+            <div class="phase-name">Node Join Flow</div>
+            <div class="phase-ac">Any Linux/macOS machine joins in under 5 minutes. Node visible in Headscale and TerraForge Server registry.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">03</div>
+          <div class="phase-body">
+            <div class="phase-name">TerraForge Server Core</div>
+            <div class="phase-ac">Node registry functional. Heartbeats updating. Job queue accepting and routing submissions. REST API fully tested.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">04</div>
+          <div class="phase-body">
+            <div class="phase-name">TerraForge Agent Core</div>
+            <div class="phase-ac">Agent daemon running on 3+ nodes. Hardware correctly reported. LLM jobs execute end-to-end. GPU detection working on NVIDIA node.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">05</div>
+          <div class="phase-body">
+            <div class="phase-name">Web Dashboard</div>
+            <div class="phase-ac">Real-time dashboard showing all nodes, GPU status, job queue. Node join invite flow functional. Mobile-responsive.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">06</div>
+          <div class="phase-body">
+            <div class="phase-name">Agent Hosting — OpenFang + OpenClaw</div>
+            <div class="phase-ac">Both agents deployable to any node from the dashboard. Accessible within tailnet. Status and direct links shown in real-time.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+        <div class="phase">
+          <div class="phase-n">07</div>
+          <div class="phase-body">
+            <div class="phase-name">Cloud GPU Fallback</div>
+            <div class="phase-ac">GCP spot VM auto-provisions when local GPU pool is exhausted, registers as a node, executes the job, and self-destructs after 15 min idle.</div>
+          </div>
+          <div class="phase-badge"><span class="badge badge-orange">v2 New</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ CTA ══════════════════════════════════════════════════════ -->
+  <section id="cta">
+    <div class="cta-inner">
+      <h2 class="cta-heading">
+        Deploy your network.<br>
+        <em>Own your AI cloud.</em>
+      </h2>
+      <p class="cta-sub">
+        Start with the coordinator on GCP Free Tier. Every device you add multiplies your compute.
+        Total infrastructure cost: $0 / month.
+      </p>
+      <div class="cta-cmd">
+        <span class="cmd-prompt">$</span>
+        <span class="cmd-text" id="join-cmd">curl https://terraforge.example.com/join | bash</span>
+        <button class="copy-btn" id="copy-btn" onclick="copyCmd()">copy</button>
+      </div>
+      <div class="cta-actions">
+        <a href="/app" class="btn btn-primary btn-lg">Launch Dashboard</a>
+        <a href="#architecture" class="btn btn-ghost btn-lg">Read the Docs</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ FOOTER ═══════════════════════════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <div class="footer-mark">TF</div>
+        <span class="footer-name">TerraForge</span>
+        <span class="footer-ver">v2.0.0-rc1</span>
+      </div>
+      <div class="footer-copy">Private AI Cloud Platform · Confidential/Internal · March 2026</div>
+      <nav class="footer-nav">
+        <a href="/app">Dashboard</a>
+        <a href="#features">Features</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#agents">Agents</a>
+        <a href="#phases">Roadmap</a>
+      </nav>
+    </div>
+  </footer>
+
+
+  <script>
+    // Scroll-triggered fade-in
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+      { threshold: 0.08, rootMargin: '0px 0px -36px 0px' }
+    );
+    document.querySelectorAll('.fade-in').forEach((el, i) => {
+      el.style.transitionDelay = (i % 6) * 70 + 'ms';
+      io.observe(el);
+    });
+
+    // Copy join command
+    function copyCmd() {
+      const text = document.getElementById('join-cmd').textContent;
+      const btn  = document.getElementById('copy-btn');
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'copied!';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    // Nav scroll shadow
+    window.addEventListener('scroll', () => {
+      document.querySelector('nav').style.borderBottomColor =
+        window.scrollY > 10 ? '#2a2a2a' : 'var(--border)';
+    }, { passive: true });
+  </script>
+
+</body>
+</html>

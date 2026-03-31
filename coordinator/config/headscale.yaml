@@ -1,0 +1,65 @@
+# TerraForge Coordinator — Headscale Configuration Template
+# For local dev: replace __DOMAIN__ and __ACME_EMAIL__ with real values.
+# For production: cloud_init.sh generates this from GCP instance metadata.
+
+server_url: https://__DOMAIN__
+listen_addr: 0.0.0.0:8080
+metrics_listen_addr: 127.0.0.1:9090
+grpc_listen_addr: 0.0.0.0:50443
+grpc_allow_insecure: false
+
+private_key_path: /var/lib/headscale/private.key
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+# Tailscale CGNAT range — no conflict with typical home networks (RFC 6598)
+ip_prefixes:
+  - 100.64.0.0/10
+
+derp:
+  server:
+    # Built-in DERP relay for WireGuard NAT traversal fallback
+    enabled: true
+    region_id: 999
+    region_code: "tf-derp"
+    region_name: "TerraForge DERP"
+    stun_listen_addr: "0.0.0.0:3478"
+  urls:
+    - https://controlplane.tailscale.com/derpmap/default
+  auto_update_enabled: true
+  update_frequency: 24h
+
+disable_check_updates: true
+ephemeral_node_inactivity_timeout: 30m
+node_update_check_interval: 10s
+
+database:
+  type: sqlite3
+  sqlite:
+    path: /var/lib/headscale/db.sqlite
+
+# Let's Encrypt TLS (requires a real domain)
+acme_url: https://acme-v02.api.letsencrypt.org/directory
+acme_email: __ACME_EMAIL__
+tls_letsencrypt_hostname: __DOMAIN__
+tls_letsencrypt_listen: ":http"
+tls_letsencrypt_cache_dir: /var/lib/headscale/cache
+tls_letsencrypt_challenge_type: HTTP-01
+
+log:
+  level: info
+
+# MagicDNS: nodes reachable by hostname (home-server, mac-studio, etc.)
+dns_config:
+  magic_dns: true
+  base_domain: terraforge.internal
+  nameservers:
+    - 1.1.1.1
+    - 8.8.8.8
+  override_local_dns: false
+
+# ACLs: default allow-all within tailnet (tightened per-user in v2.1)
+# acl_policy_path: "/etc/headscale/acl.yaml"
+
+unix_socket: /var/run/headscale/headscale.sock
+unix_socket_permission: "0770"

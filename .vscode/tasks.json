@@ -1,0 +1,54 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TerraForge: Install Dependencies",
+      "type": "shell",
+      "command": "pip install -r requirements.txt",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "TerraForge: Detect LLM Providers",
+      "type": "shell",
+      "command": "python terraforge.py --detect",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "TerraForge: Interactive Wizard",
+      "type": "shell",
+      "command": "python terraforge.py --interactive",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "TerraForge: Generate from Active File",
+      "type": "shell",
+      "command": "python terraforge.py '${file}' --output ./output",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "TerraForge: Generate + Push to Coder",
+      "type": "shell",
+      "command": "python terraforge.py '${file}' --push",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "TerraForge: Python ML Workspace (Example)",
+      "type": "shell",
+      "command": "python terraforge.py examples/python-ml.yaml --output ./output/python-ml",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "TerraForge: NL → Docker Python",
+      "type": "shell",
+      "command": "python terraforge.py 'python fastapi workspace with postgres redis and celery on docker, medium size' --output ./output/fastapi",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}

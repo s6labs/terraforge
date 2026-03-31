@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TerraForge — Platform</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/hcl.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:          #000000;
+  --surface:     #0a0a0a;
+  --surface-2:   #111111;
+  --surface-3:   #181818;
+  --border:      #1c1c1c;
+  --border-2:    #2a2a2a;
+  --border-3:    #363636;
+  --text:        #f0f0f0;
+  --text-2:      #a0a0a0;
+  --text-3:      #555555;
+  --orange:      #ff6b35;
+  --orange-2:    #e85c20;
+  --orange-dim:  rgba(255,107,53,.12);
+  --orange-ring: rgba(255,107,53,.25);
+  --green:       #00d26a;
+  --green-dim:   rgba(0,210,106,.12);
+  --blue:        #4d9fff;
+  --blue-dim:    rgba(77,159,255,.12);
+  --yellow:      #f5a623;
+  --yellow-dim:  rgba(245,166,35,.12);
+  --red:         #ff4444;
+  --red-dim:     rgba(255,68,68,.12);
+  --r:           6px;
+  --r-lg:        10px;
+  --font:        'Inter', system-ui, -apple-system, sans-serif;
+  --mono:        'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  --sidebar-w:   260px;
+  --nav-h:       52px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOP NAVIGATION
+═══════════════════════════════════════════════════════════════ */
+.topnav {
+  height: var(--nav-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 0;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  padding-right: 24px;
+  border-right: 1px solid var(--border);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.nav-logo-mark {
+  width: 28px; height: 28px;
+  background: var(--orange);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 900;
+  color: #000;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+}
+.nav-logo-name {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.nav-logo-v {
+  font-size: 10px; font-family: var(--mono);
+  color: var(--orange);
+  background: var(--orange-dim);
+  border: 1px solid var(--orange-ring);
+  padding: 1px 6px; border-radius: 3px;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  gap: 2px;
+  flex: 1;
+}
+.nav-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 14px;
+  height: 100%;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color .15s;
+  cursor: pointer;
+  background: none; border-top: none; border-left: none; border-right: none;
+  position: relative;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--orange);
+}
+.nav-tab .phase-badge {
+  font-size: 9px; font-weight: 700;
+  font-family: var(--mono);
+  color: var(--text-3);
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  padding: 1px 5px; border-radius: 3px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.nav-tab.active .phase-badge {
+  color: var(--orange);
+  background: var(--orange-dim);
+  border-color: var(--orange-ring);
+}
+.nav-tab.locked { opacity: .45; cursor: default; }
+
+.nav-right {
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+
+.coder-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 20px;
+  transition: border-color .2s;
+}
+.coder-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex-shrink: 0;
+}
+.coder-pill.connected { color: var(--green); border-color: rgba(0,210,106,.25); }
+.coder-pill.connected .dot {
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(0,210,106,.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════════ */
+.shell {
+  display: flex;
+  height: 100vh;
+  padding-top: var(--nav-h);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sb-section {
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+}
+.sb-section:last-child { border-bottom: none; }
+
+.sb-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--text-3);
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.sb-icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); padding: 3px 6px;
+  border-radius: 4px; font-size: 13px;
+  transition: color .15s, background .15s;
+  line-height: 1;
+}
+.sb-icon-btn:hover { color: var(--orange); background: var(--surface-3); }
+
+/* Provider cards */
+.provider-list { display: flex; flex-direction: column; gap: 6px; }
+
+.provider-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  position: relative;
+  overflow: hidden;
+}
+.provider-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: transparent;
+  transition: background .15s;
+}
+.provider-card:hover { border-color: var(--border-2); background: var(--surface-3); }
+.provider-card:hover::before { background: var(--border-3); }
+.provider-card.selected { border-color: var(--orange-ring); background: var(--orange-dim); }
+.provider-card.selected::before { background: var(--orange); }
+
+.pc-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.pc-name { font-size: 12.5px; font-weight: 600; }
+.pc-type {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  padding: 2px 6px; border-radius: 3px;
+  flex-shrink: 0;
+}
+.pc-type.local { background: var(--green-dim); color: var(--green); }
+.pc-type.cloud { background: var(--blue-dim); color: var(--blue); }
+.pc-model {
+  font-size: 11px; color: var(--text-2); font-family: var(--mono);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 3px;
+}
+
+.model-selector { margin-top: 10px; display: none; }
+.model-selector.visible { display: block; }
+.model-selector label {
+  font-size: 10px; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: .8px; display: block; margin-bottom: 5px;
+}
+.model-selector select {
+  width: 100%;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: var(--r);
+  font-size: 11px;
+  font-family: var(--mono);
+  outline: none;
+  cursor: pointer;
+}
+.model-selector select:focus { border-color: var(--orange-ring); }
+
+.no-providers {
+  font-size: 12px; color: var(--text-2);
+  text-align: center; padding: 14px 4px; line-height: 1.65;
+}
+.no-providers code { color: var(--orange); font-family: var(--mono); }
+
+/* Options */
+.option-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+}
+.option-row label.opt-label { font-size: 12.5px; color: var(--text-2); cursor: pointer; }
+
+.toggle { position: relative; width: 34px; height: 18px; cursor: pointer; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--border-2); border-radius: 20px;
+  transition: background .2s;
+  border: 1px solid var(--border-3);
+}
+.toggle input:checked + .toggle-track { background: var(--orange); border-color: transparent; }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 12px; height: 12px;
+  background: var(--text-3); border-radius: 50%;
+  transition: transform .2s, background .2s;
+}
+.toggle input:checked ~ .toggle-thumb { transform: translateX(16px); background: #fff; }
+
+/* Examples */
+.example-list { display: flex; flex-direction: column; gap: 2px; }
+.example-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px; border-radius: var(--r);
+  font-size: 12px; color: var(--text-2);
+  cursor: pointer;
+  background: none; border: none; text-align: left;
+  transition: color .15s, background .15s;
+  width: 100%;
+}
+.example-item:hover { color: var(--text); background: var(--surface-3); }
+.example-item .ex-icon { font-size: 14px; flex-shrink: 0; }
+.example-item .ex-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.example-item .ex-arr { color: var(--text-3); font-size: 11px; flex-shrink: 0; opacity: 0; transition: opacity .15s; }
+.example-item:hover .ex-arr { opacity: 1; }
+
+/* Phase 2 preview */
+.phase-preview {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.pp-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  opacity: .5;
+}
+.pp-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-3); flex-shrink: 0; }
+.pp-label { font-size: 11.5px; color: var(--text-2); flex: 1; }
+.pp-badge {
+  font-size: 9px; font-weight: 700;
+  font-family: var(--mono); text-transform: uppercase;
+  color: var(--text-3); background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  padding: 1px 5px; border-radius: 3px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN WORKSPACE
+═══════════════════════════════════════════════════════════════ */
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Workspace header ───────────────────────────── */
+.ws-header {
+  padding: 14px 24px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.ws-title { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+.ws-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+.ws-meta { display: flex; align-items: center; gap: 8px; }
+
+.kbd {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  background: var(--surface-3); border: 1px solid var(--border-2);
+  color: var(--text-2); padding: 2px 6px; border-radius: 4px;
+}
+
+/* ── Input area ─────────────────────────────────── */
+.input-zone {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+/* Input mode tabs */
+.mode-tabs {
+  display: flex; gap: 2px;
+  background: var(--surface-2);
+  padding: 3px; border-radius: 7px;
+  width: fit-content;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.mode-tab {
+  background: none; border: none; cursor: pointer;
+  padding: 5px 14px; border-radius: 5px;
+  font-size: 12px; font-weight: 500; color: var(--text-2);
+  transition: color .15s, background .15s, box-shadow .15s;
+}
+.mode-tab.active {
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,.5);
+}
+
+.input-wrap { position: relative; }
+
+textarea {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  color: var(--text);
+  font-size: 13.5px;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 78px;
+  line-height: 1.65;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+  font-family: var(--font);
+}
+textarea:focus {
+  border-color: var(--orange-ring);
+  box-shadow: 0 0 0 3px rgba(255,107,53,.07);
+}
+textarea::placeholder { color: var(--text-3); }
+#yaml-input { font-family: var(--mono); font-size: 12.5px; min-height: 100px; }
+
+.input-footer {
+  display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: var(--r);
+  font-weight: 600; cursor: pointer;
+  border: none; transition: all .15s;
+  white-space: nowrap;
+  line-height: 1;
+}
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .35; cursor: not-allowed; transform: none !important; }
+
+.btn-generate {
+  padding: 10px 20px; font-size: 13.5px;
+  background: var(--orange);
+  color: #000;
+}
+.btn-generate:hover:not(:disabled) { background: var(--orange-2); }
+
+.btn-sm {
+  padding: 7px 14px; font-size: 12px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+}
+.btn-sm:hover { color: var(--text); border-color: var(--border-3); }
+
+.btn-icon {
+  padding: 7px 10px; font-size: 13px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+}
+.btn-icon:hover { color: var(--text); border-color: var(--border-3); }
+
+.btn-action {
+  padding: 7px 14px; font-size: 12px;
+}
+.btn-green {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(0,210,106,.2);
+}
+.btn-green:hover { background: rgba(0,210,106,.2); }
+.btn-blue {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid rgba(77,159,255,.2);
+}
+.btn-blue:hover { background: rgba(77,159,255,.2); }
+
+/* ── Spec card ──────────────────────────────────── */
+#spec-card {
+  display: none;
+  margin: 0 24px;
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px 20px;
+  flex-shrink: 0;
+  border-top: none;
+}
+.spec-item { display: flex; flex-direction: column; gap: 2px; }
+.spec-key {
+  font-size: 9.5px; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: .8px; font-weight: 600;
+}
+.spec-val { font-size: 12.5px; font-weight: 600; font-family: var(--mono); }
+
+/* ── Alerts ─────────────────────────────────────── */
+#alerts {
+  display: none;
+  padding: 8px 24px;
+  flex-direction: column; gap: 5px;
+  flex-shrink: 0;
+}
+.alert {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; padding: 8px 12px;
+  border-radius: var(--r); line-height: 1.5;
+}
+.alert-icon { flex-shrink: 0; font-size: 13px; }
+.alert-warn   { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(245,166,35,.2); }
+.alert-err    { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(255,68,68,.2); }
+.alert-ok     { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(0,210,106,.2); }
+
+/* ── Output area ────────────────────────────────── */
+.output-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.output-bar {
+  height: 40px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.output-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+.output-label.live { color: var(--orange); }
+
+.file-tabs {
+  display: flex; gap: 1px; flex: 1;
+}
+.file-tab {
+  font-size: 11.5px; padding: 5px 10px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  cursor: pointer; color: var(--text-3);
+  font-family: var(--mono);
+  transition: .15s;
+}
+.file-tab.active {
+  background: var(--surface-3);
+  border-color: var(--border-2);
+  color: var(--text);
+}
+.file-tab:hover:not(.active) { color: var(--text-2); }
+
+.output-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* Code view */
+.output-body {
+  flex: 1; overflow-y: auto; position: relative;
+}
+
+/* Empty state */
+.empty-state {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; pointer-events: none;
+}
+.es-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; opacity: .5;
+}
+.es-title { font-size: 14px; font-weight: 600; color: var(--text-2); opacity: .6; }
+.es-sub { font-size: 12px; color: var(--text-3); opacity: .5; text-align: center; max-width: 240px; line-height: 1.6; }
+
+pre.hcl-view {
+  margin: 0; padding: 20px 24px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  background: var(--bg) !important;
+  min-height: 100%;
+  tab-size: 2;
+}
+.hljs { background: var(--bg) !important; color: #cdd6f4; }
+
+#streaming-cursor {
+  display: inline-block; width: 7px; height: 13px;
+  background: var(--orange); animation: blink 1s step-end infinite;
+  vertical-align: text-bottom; margin-left: 1px; border-radius: 1px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ── Status bar ─────────────────────────────────── */
+.statusbar {
+  height: 26px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 12px;
+  flex-shrink: 0;
+}
+.sb-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-3);
+}
+.sb-sep { width: 1px; height: 12px; background: var(--border); }
+.sb-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); flex-shrink: 0; }
+.sb-dot.generating { background: var(--orange); animation: pulse 1.2s ease-in-out infinite; }
+.sb-dot.done       { background: var(--green); }
+.sb-dot.error      { background: var(--red); }
+.sb-mono { font-family: var(--mono); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* ── Spinner ────────────────────────────────────── */
+.spinner {
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,107,53,.2);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-3); }
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 840px) {
+  .sidebar { display: none; }
+  .nav-tab .phase-badge { display: none; }
+}
+@media (max-width: 600px) {
+  .ws-header, .input-zone { padding-left: 16px; padding-right: 16px; }
+  .output-bar { padding: 0 16px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS GEAR BUTTON (nav)
+═══════════════════════════════════════════════════════════════ */
+.settings-gear-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 11px; font-size: 12px; font-weight: 500;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text-2); border-radius: var(--r);
+  cursor: pointer; transition: color .15s, border-color .15s, background .15s;
+  flex-shrink: 0;
+}
+.settings-gear-btn:hover { color: var(--text); border-color: var(--border-3); }
+.settings-gear-btn.active {
+  color: var(--orange); border-color: var(--orange-ring);
+  background: var(--orange-dim);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS VIEW
+═══════════════════════════════════════════════════════════════ */
+.settings-view {
+  height: 100vh;
+  padding-top: var(--nav-h);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-topbar {
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.settings-topbar-info { flex: 1; }
+.settings-topbar-title { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+.settings-topbar-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+.btn-back {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; font-size: 12.5px; font-weight: 500;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  color: var(--text-2); border-radius: var(--r);
+  cursor: pointer; transition: color .15s, border-color .15s;
+}
+.btn-back:hover { color: var(--text); border-color: var(--border-3); }
+
+.settings-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+.settings-inner { max-width: 760px; width: 100%; }
+
+.stg-section-label {
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+/* ── Provider key cards ───────────────────── */
+.pkc-list { display: flex; flex-direction: column; gap: 10px; }
+
+.provider-key-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.pkc-head {
+  padding: 13px 16px 11px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.pkc-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--r);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  flex-shrink: 0;
+}
+.pkc-meta { flex: 1; min-width: 0; }
+.pkc-name { font-size: 13.5px; font-weight: 700; }
+.pkc-desc { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+
+.pkc-badges { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+.badge {
+  font-size: 9px; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 3px;
+}
+.badge-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(0,210,106,.2); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); border: 1px solid var(--orange-ring); }
+.badge-blue   { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(77,159,255,.2); }
+.badge-dim    { background: var(--surface-3);  color: var(--text-3); border: 1px solid var(--border-2); }
+
+.pkc-status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border-3); flex-shrink: 0;
+  transition: background .3s, box-shadow .3s;
+}
+.pkc-status-dot.set {
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(0,210,106,.45);
+}
+
+.pkc-body { padding: 14px 16px; }
+
+.key-field-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .9px;
+  color: var(--text-3); margin-bottom: 7px;
+}
+
+.key-status-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.key-masked {
+  font-family: var(--mono); font-size: 12.5px;
+  color: var(--text-2); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--r);
+  padding: 5px 10px; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.key-src-badge {
+  font-size: 9.5px; font-weight: 600; color: var(--text-3);
+  background: var(--surface-3); border: 1px solid var(--border-2);
+  padding: 3px 8px; border-radius: 3px; white-space: nowrap; flex-shrink: 0;
+}
+
+.key-input-row { display: flex; gap: 7px; align-items: center; margin-bottom: 10px; }
+.key-input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: var(--mono); font-size: 12.5px;
+  padding: 8px 11px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.key-input:focus {
+  border-color: var(--orange-ring);
+  box-shadow: 0 0 0 3px rgba(255,107,53,.07);
+}
+.key-input::placeholder { color: var(--text-3); font-family: var(--font); font-size: 12px; }
+
+.btn-save-key {
+  padding: 8px 16px; font-size: 12px; font-weight: 600;
+  background: var(--orange); color: #000;
+  border: none; border-radius: var(--r); cursor: pointer;
+  transition: background .15s; white-space: nowrap;
+}
+.btn-save-key:hover:not(:disabled) { background: var(--orange-2); }
+.btn-save-key:disabled { opacity: .4; cursor: not-allowed; }
+
+.btn-clear-key {
+  padding: 8px 13px; font-size: 12px; font-weight: 500;
+  background: var(--surface-3); border: 1px solid var(--border-2);
+  color: var(--text-2); border-radius: var(--r);
+  cursor: pointer; transition: color .15s, border-color .15s; white-space: nowrap;
+}
+.btn-clear-key:hover:not(:disabled) { color: var(--red); border-color: rgba(255,68,68,.35); }
+.btn-clear-key:disabled { opacity: .3; cursor: not-allowed; }
+
+.key-actions { display: flex; align-items: center; gap: 8px; }
+
+.btn-test {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 13px; font-size: 12px; font-weight: 500;
+  background: var(--blue-dim); color: var(--blue);
+  border: 1px solid rgba(77,159,255,.25); border-radius: var(--r);
+  cursor: pointer; transition: background .15s;
+}
+.btn-test:hover:not(:disabled) { background: rgba(77,159,255,.2); }
+.btn-test:disabled { opacity: .35; cursor: not-allowed; }
+
+.test-result {
+  display: none; font-size: 11.5px; font-weight: 500;
+  padding: 4px 10px; border-radius: 4px; white-space: nowrap;
+}
+.test-result.ok  { display: inline-flex; background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,210,106,.2); }
+.test-result.err { display: inline-flex; background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,68,68,.2); }
+.test-result.pnd { display: inline-flex; background: var(--surface-3); color: var(--text-3); border: 1px solid var(--border-2); }
+
+/* ── Local providers card ─────────────────── */
+.local-providers-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.local-provider-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.local-provider-row:last-child { border-bottom: none; }
+.lpr-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border-3); flex-shrink: 0;
+  transition: background .3s, box-shadow .3s;
+}
+.lpr-dot.detected {
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(0,210,106,.4);
+}
+.lpr-info { flex: 1; }
+.lpr-name { font-size: 13px; font-weight: 600; }
+.lpr-desc { font-size: 11.5px; color: var(--text-2); margin-top: 1px; }
+
+/* ── Security footer ─────────────────────── */
+.settings-security {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px;
+}
+.sec-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.sec-text { font-size: 12px; color: var(--text-3); line-height: 1.7; }
+.sec-text strong { color: var(--text-2); }
+.sec-text code { font-family: var(--mono); font-size: 11.5px; color: var(--orange); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOP NAV
+═══════════════════════════════════════════════════════════════ -->
+<nav class="topnav">
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-mark">TF</div>
+    <span class="nav-logo-name">TerraForge</span>
+    <span class="nav-logo-v">v2</span>
+  </a>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Generator
+      <span class="phase-badge">Live</span>
+    </button>
+    <button class="nav-tab locked" title="Phase 2: Node Join Flow">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+      Network
+      <span class="phase-badge">Phase 2</span>
+    </button>
+    <button class="nav-tab locked" title="Phase 3: TerraForge Server">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="4" width="14" height="3" rx="1"/><rect x="1" y="9" width="14" height="3" rx="1"/><circle cx="3.5" cy="5.5" r=".8" fill="currentColor"/><circle cx="3.5" cy="10.5" r=".8" fill="currentColor"/></svg>
+      GPU Pool
+      <span class="phase-badge">Phase 3</span>
+    </button>
+    <button class="nav-tab locked" title="Phase 6: Agent Hosting">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2a3 3 0 0 1 3 3v2H5V5a3 3 0 0 1 3-3Z"/><path d="M3 7h10l1 6H2L3 7Z"/></svg>
+      Agents
+      <span class="phase-badge">Phase 6</span>
+    </button>
+    <button class="nav-tab locked" title="Phase 5: Web Dashboard">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="8" height="8" rx="1"/><rect x="11" y="1" width="4" height="8" rx="1"/><rect x="1" y="11" width="4" height="4" rx="1"/><rect x="7" y="11" width="8" height="4" rx="1"/></svg>
+      Workspaces
+      <span class="phase-badge">Phase 5</span>
+    </button>
+  </div>
+
+  <div class="nav-right">
+    <div class="coder-pill" id="coder-badge">
+      <span class="dot"></span>
+      <span id="coder-badge-text">Coder</span>
+    </div>
+    <button class="settings-gear-btn" id="settings-btn" onclick="openSettings()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.54 11.54l1.42 1.42M3.05 12.95l1.42-1.42M11.54 4.46l1.42-1.42"/></svg>
+      Settings
+    </button>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SHELL
+═══════════════════════════════════════════════════════════════ -->
+<div class="shell" id="shell">
+
+  <!-- ══════════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════════ -->
+  <aside class="sidebar">
+
+    <!-- Providers -->
+    <div class="sb-section">
+      <div class="sb-label">
+        LLM Providers
+        <button class="sb-icon-btn" id="refresh-providers" title="Re-scan providers">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5"/><path d="M13.5 2.5v3h-3"/></svg>
+        </button>
+      </div>
+      <div id="providers-list">
+        <div class="no-providers">
+          <div class="spinner" style="margin:0 auto 8px"></div>
+          Scanning for LLMs…
+        </div>
+      </div>
+      <div class="model-selector" id="model-selector">
+        <label>Model override</label>
+        <select id="model-select"></select>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="sb-section">
+      <div class="sb-label">Options</div>
+      <div class="option-row">
+        <label class="opt-label" for="push-toggle-input">Push to Coder after generate</label>
+        <label class="toggle">
+          <input type="checkbox" id="push-toggle" id="push-toggle-input">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Quick examples -->
+    <div class="sb-section">
+      <div class="sb-label">Quick Examples</div>
+      <div class="example-list" id="examples"></div>
+    </div>
+
+    <!-- Platform preview -->
+    <div class="sb-section">
+      <div class="sb-label">Platform — Coming</div>
+      <div class="phase-preview">
+        <div class="pp-item">
+          <div class="pp-dot"></div>
+          <span class="pp-label">Node Join Flow</span>
+          <span class="pp-badge">Phase 2</span>
+        </div>
+        <div class="pp-item">
+          <div class="pp-dot"></div>
+          <span class="pp-label">GPU Pool</span>
+          <span class="pp-badge">Phase 3</span>
+        </div>
+        <div class="pp-item">
+          <div class="pp-dot"></div>
+          <span class="pp-label">Agent Hosting</span>
+          <span class="pp-badge">Phase 6</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+
+  <!-- ══════════════════════════════════════════════
+       WORKSPACE
+  ══════════════════════════════════════════════ -->
+  <div class="workspace">
+
+    <!-- Header -->
+    <div class="ws-header">
+      <div>
+        <div class="ws-title">Workspace Generator</div>
+        <div class="ws-sub">Generate production-grade Terraform HCL for Coder workspaces</div>
+      </div>
+      <div class="ws-meta">
+        <span class="kbd">⌘ Return</span>
+        <span style="font-size:11px;color:var(--text-3)">to generate</span>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-zone">
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-tab="nl">Natural Language</button>
+        <button class="mode-tab" data-tab="yaml">YAML / JSON</button>
+      </div>
+
+      <div id="tab-nl">
+        <textarea id="nl-input"
+          placeholder="Describe your workspace — e.g. &quot;Python FastAPI on Docker with PostgreSQL and Redis, 4 CPU / 8 GB, code-server IDE&quot;"
+          rows="3"></textarea>
+      </div>
+      <div id="tab-yaml" style="display:none">
+        <textarea id="yaml-input"
+          placeholder="name: my-workspace&#10;target: docker&#10;language: python&#10;cpu: 4&#10;memory_gb: 8&#10;ide: code-server"
+          rows="5"></textarea>
+      </div>
+
+      <div class="input-footer">
+        <button class="btn btn-generate" id="generate-btn">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          Generate
+        </button>
+        <button class="btn btn-sm" id="clear-btn">Clear</button>
+      </div>
+    </div>
+
+    <!-- Spec card (shown after parse) -->
+    <div id="spec-card"></div>
+
+    <!-- Alerts -->
+    <div id="alerts" class="alerts" style="display:none; flex-direction:column; gap:5px; padding:8px 24px;"></div>
+
+    <!-- Output -->
+    <div class="output-zone">
+
+      <!-- Output toolbar -->
+      <div class="output-bar">
+        <span class="output-label" id="output-title">Output</span>
+        <div class="file-tabs" id="file-tabs"></div>
+        <div class="output-actions">
+          <button class="btn btn-icon btn-action" id="download-btn" style="display:none" title="Download all files">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2v9M4 8l4 4 4-4"/><path d="M2 13h12"/></svg>
+          </button>
+          <button class="btn btn-action btn-green" id="push-btn" style="display:none">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 13V4M4 7l4-4 4 4"/><path d="M2 13h12"/></svg>
+            Push to Coder
+          </button>
+        </div>
+      </div>
+
+      <!-- Code body -->
+      <div class="output-body" id="output-body">
+        <div class="empty-state" id="placeholder">
+          <div class="es-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div class="es-title">No template generated yet</div>
+          <div class="es-sub">Describe a workspace and press Generate, or pick a quick example from the sidebar</div>
+        </div>
+        <pre class="hcl-view" id="hcl-pre" style="display:none"><code class="language-hcl" id="hcl-code"></code></pre>
+      </div>
+
+    </div>
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <div class="sb-item">
+        <div class="sb-dot" id="status-dot"></div>
+        <span id="status-text">Ready</span>
+      </div>
+      <div class="sb-sep"></div>
+      <div class="sb-item sb-mono" id="token-count">0 tokens</div>
+      <div class="sb-sep"></div>
+      <div class="sb-item" id="provider-label">No provider</div>
+    </div>
+
+  </div><!-- /workspace -->
+</div><!-- /shell -->
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SETTINGS VIEW
+═══════════════════════════════════════════════════════════════ -->
+<div id="settings-view" class="settings-view" style="display:none">
+
+  <div class="settings-topbar">
+    <div class="settings-topbar-info">
+      <div class="settings-topbar-title">Settings</div>
+      <div class="settings-topbar-sub">API keys, Coder connection, and provider configuration</div>
+    </div>
+    <button class="btn-back" onclick="closeSettings()">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3L5 8l5 5"/></svg>
+      Back to Generator
+    </button>
+  </div>
+
+  <div class="settings-content">
+  <div class="settings-inner">
+
+    <!-- ── LLM Provider Keys ─────────────────────────────── -->
+    <div>
+      <div class="stg-section-label">LLM Provider Keys</div>
+      <div class="pkc-list">
+
+        <!-- Google Gemini -->
+        <div class="provider-key-card">
+          <div class="pkc-head">
+            <div class="pkc-icon">✦</div>
+            <div class="pkc-meta">
+              <div class="pkc-name">Google Gemini</div>
+              <div class="pkc-desc">gemini-1.5-flash · 1,500 requests/day free · Priority 15 (default cloud)</div>
+            </div>
+            <div class="pkc-badges">
+              <span class="badge badge-green">Free Tier</span>
+              <span class="badge badge-orange">Recommended</span>
+            </div>
+            <div class="pkc-status-dot" id="dot-google_api_key"></div>
+          </div>
+          <div class="pkc-body">
+            <div class="key-field-label">GOOGLE_API_KEY</div>
+            <div class="key-status-row">
+              <span class="key-masked" id="masked-google_api_key">—</span>
+              <span class="key-src-badge" id="src-google_api_key">not set</span>
+            </div>
+            <div class="key-input-row">
+              <input class="key-input" type="text" id="input-google_api_key"
+                placeholder="Paste Google AI Studio key (AIza…)" autocomplete="off" spellcheck="false"/>
+              <button class="btn-save-key" onclick="saveSetting('google_api_key')">Save</button>
+              <button class="btn-clear-key" id="clear-google_api_key" onclick="clearSetting('google_api_key')">Clear</button>
+            </div>
+            <div class="key-actions">
+              <button class="btn-test" onclick="testSetting('google_api_key')">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                Test Connection
+              </button>
+              <span class="test-result" id="test-google_api_key"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Anthropic -->
+        <div class="provider-key-card">
+          <div class="pkc-head">
+            <div class="pkc-icon">⬡</div>
+            <div class="pkc-meta">
+              <div class="pkc-name">Anthropic Claude</div>
+              <div class="pkc-desc">claude-sonnet-4-6 / claude-opus-4-6 · Priority 20</div>
+            </div>
+            <div class="pkc-badges">
+              <span class="badge badge-blue">Cloud</span>
+            </div>
+            <div class="pkc-status-dot" id="dot-anthropic_api_key"></div>
+          </div>
+          <div class="pkc-body">
+            <div class="key-field-label">ANTHROPIC_API_KEY</div>
+            <div class="key-status-row">
+              <span class="key-masked" id="masked-anthropic_api_key">—</span>
+              <span class="key-src-badge" id="src-anthropic_api_key">not set</span>
+            </div>
+            <div class="key-input-row">
+              <input class="key-input" type="text" id="input-anthropic_api_key"
+                placeholder="sk-ant-…" autocomplete="off" spellcheck="false"/>
+              <button class="btn-save-key" onclick="saveSetting('anthropic_api_key')">Save</button>
+              <button class="btn-clear-key" id="clear-anthropic_api_key" onclick="clearSetting('anthropic_api_key')">Clear</button>
+            </div>
+            <div class="key-actions">
+              <button class="btn-test" onclick="testSetting('anthropic_api_key')">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                Test Connection
+              </button>
+              <span class="test-result" id="test-anthropic_api_key"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- OpenRouter -->
+        <div class="provider-key-card">
+          <div class="pkc-head">
+            <div class="pkc-icon">⬦</div>
+            <div class="pkc-meta">
+              <div class="pkc-name">OpenRouter</div>
+              <div class="pkc-desc">Multi-provider gateway · Priority 21</div>
+            </div>
+            <div class="pkc-badges">
+              <span class="badge badge-blue">Cloud</span>
+            </div>
+            <div class="pkc-status-dot" id="dot-openrouter_api_key"></div>
+          </div>
+          <div class="pkc-body">
+            <div class="key-field-label">OPENROUTER_API_KEY</div>
+            <div class="key-status-row">
+              <span class="key-masked" id="masked-openrouter_api_key">—</span>
+              <span class="key-src-badge" id="src-openrouter_api_key">not set</span>
+            </div>
+            <div class="key-input-row">
+              <input class="key-input" type="text" id="input-openrouter_api_key"
+                placeholder="sk-or-…" autocomplete="off" spellcheck="false"/>
+              <button class="btn-save-key" onclick="saveSetting('openrouter_api_key')">Save</button>
+              <button class="btn-clear-key" id="clear-openrouter_api_key" onclick="clearSetting('openrouter_api_key')">Clear</button>
+            </div>
+            <div class="key-actions">
+              <button class="btn-test" onclick="testSetting('openrouter_api_key')">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+                Test Connection
+              </button>
+              <span class="test-result" id="test-openrouter_api_key"></span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /pkc-list -->
+    </div>
+
+    <!-- ── Coder Connection ───────────────────────────────── -->
+    <div>
+      <div class="stg-section-label">Coder Connection</div>
+      <div class="provider-key-card">
+        <div class="pkc-head">
+          <div class="pkc-icon">🔗</div>
+          <div class="pkc-meta">
+            <div class="pkc-name">Coder</div>
+            <div class="pkc-desc">Required for Push to Coder · auto-detected from <code style="font-family:var(--mono);font-size:11px;color:var(--orange)">coder login</code> or env vars</div>
+          </div>
+          <div class="pkc-badges">
+            <span class="badge badge-dim" id="coder-connection-badge">Not configured</span>
+          </div>
+        </div>
+        <div class="pkc-body">
+
+          <div class="key-field-label">Coder URL</div>
+          <div class="key-status-row">
+            <span class="key-masked" id="masked-coder_url">—</span>
+            <span class="key-src-badge" id="src-coder_url">not set</span>
+          </div>
+          <div class="key-input-row">
+            <input class="key-input" type="url" id="input-coder_url"
+              placeholder="https://coder.example.com" autocomplete="off" spellcheck="false"/>
+            <button class="btn-save-key" onclick="saveSetting('coder_url')">Save</button>
+            <button class="btn-clear-key" id="clear-coder_url" onclick="clearSetting('coder_url')">Clear</button>
+          </div>
+          <div class="key-actions" style="margin-bottom:18px">
+            <button class="btn-test" onclick="testSetting('coder_url')">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+              Test URL
+            </button>
+            <span class="test-result" id="test-coder_url"></span>
+          </div>
+
+          <div class="key-field-label">Session Token</div>
+          <div class="key-status-row">
+            <span class="key-masked" id="masked-coder_session_token">—</span>
+            <span class="key-src-badge" id="src-coder_session_token">not set</span>
+          </div>
+          <div class="key-input-row">
+            <input class="key-input" type="text" id="input-coder_session_token"
+              placeholder="Get from Coder → Account → Tokens" autocomplete="off" spellcheck="false"/>
+            <button class="btn-save-key" onclick="saveSetting('coder_session_token')">Save</button>
+            <button class="btn-clear-key" id="clear-coder_session_token" onclick="clearSetting('coder_session_token')">Clear</button>
+          </div>
+          <div class="key-actions">
+            <button class="btn-test" onclick="testSetting('coder_session_token')">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+              Test Token
+            </button>
+            <span class="test-result" id="test-coder_session_token"></span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Local Providers ────────────────────────────────── -->
+    <div>
+      <div class="stg-section-label">Local Providers — Auto-Detected</div>
+      <div class="local-providers-card">
+        <div class="local-provider-row">
+          <div class="lpr-dot" id="local-dot-ollama"></div>
+          <div class="lpr-info">
+            <div class="lpr-name">Ollama</div>
+            <div class="lpr-desc">Port 11434 · Priority 10 (highest) · No config required</div>
+          </div>
+          <span class="key-src-badge" id="local-status-ollama">checking…</span>
+        </div>
+        <div class="local-provider-row">
+          <div class="lpr-dot" id="local-dot-lmstudio"></div>
+          <div class="lpr-info">
+            <div class="lpr-name">LM Studio</div>
+            <div class="lpr-desc">Ports 1234 / 8080 · Priority 11 · No config required</div>
+          </div>
+          <span class="key-src-badge" id="local-status-lmstudio">checking…</span>
+        </div>
+        <div class="local-provider-row">
+          <div class="lpr-dot" id="local-dot-openai_compatible"></div>
+          <div class="lpr-info">
+            <div class="lpr-name">OpenAI-Compatible Server</div>
+            <div class="lpr-desc">Ports 8000 / 8001 / 5000 / 5001 · Priority 12 · No config required</div>
+          </div>
+          <span class="key-src-badge" id="local-status-openai_compatible">checking…</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Security notice ────────────────────────────────── -->
+    <div class="settings-security">
+      <div class="sec-icon">🔒</div>
+      <div class="sec-text">
+        <strong>Keys are stored locally</strong> in <code>~/.terraforge/config.json</code> with permissions <code>600</code> (readable only by you).<br>
+        They are <strong>never transmitted</strong> to TerraForge servers. Environment variables take precedence over the config file and are never overwritten by the UI.<br>
+        To revoke a key, click <strong>Clear</strong> above — or delete <code>~/.terraforge/config.json</code> to reset all settings.
+      </div>
+    </div>
+
+  </div><!-- /settings-inner -->
+  </div><!-- /settings-content -->
+
+</div><!-- /settings-view -->
+
+
+<script>
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+const state = {
+  providers: [],
+  selectedProvider: 0,
+  generatedFiles: {},
+  activeFile: 'main.tf',
+  generating: false,
+  coderConfigured: false,
+  currentTab: 'nl',
+};
+
+// ══════════════════════════════════════════════════════
+// EXAMPLES
+// ══════════════════════════════════════════════════════
+const EXAMPLES = [
+  { icon: '🐍', label: 'Python FastAPI',   text: 'Python FastAPI workspace with PostgreSQL, Redis, and Celery on Docker. 4 CPU, 8GB RAM, code-server IDE.' },
+  { icon: '🟢', label: 'Node.js + React',  text: 'Node.js 20 fullstack workspace with React, TypeScript, and PostgreSQL on Docker. Medium size, code-server.' },
+  { icon: '🦀', label: 'Rust dev',         text: 'Rust development workspace on Docker with cargo, clippy, rustfmt. Small size, code-server IDE.' },
+  { icon: '⚙️', label: 'Go microservices', text: 'Go workspace for microservices with gRPC, PostgreSQL, Redis on Kubernetes. 4 CPU / 8GB, code-server.' },
+  { icon: '🤖', label: 'ML / GPU',         text: 'Python machine learning workspace with PyTorch, CUDA GPU support, Jupyter on Docker. Large size.' },
+  { icon: '☁️', label: 'AWS EC2',          text: 'Python workspace on AWS EC2 with S3 access, security group, and EBS volume. code-server IDE.' },
+];
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadExamples();
+  checkCoderStatus();
+  loadProviders();
+  bindEvents();
+});
+
+function loadExamples() {
+  const el = document.getElementById('examples');
+  EXAMPLES.forEach(ex => {
+    const btn = document.createElement('button');
+    btn.className = 'example-item';
+    btn.innerHTML = `
+      <span class="ex-icon">${ex.icon}</span>
+      <span class="ex-text">${ex.label}</span>
+      <span class="ex-arr">→</span>`;
+    btn.addEventListener('click', () => {
+      setTab('nl');
+      document.getElementById('nl-input').value = ex.text;
+      document.getElementById('nl-input').focus();
+    });
+    el.appendChild(btn);
+  });
+}
+
+async function checkCoderStatus() {
+  try {
+    const r = await fetch('/api/coder-status');
+    const d = await r.json();
+    const badge = document.getElementById('coder-badge');
+    const text  = document.getElementById('coder-badge-text');
+    if (d.configured) {
+      state.coderConfigured = true;
+      badge.classList.add('connected');
+      const host = new URL(d.url).hostname;
+      text.textContent = `Coder: ${host}`;
+    } else {
+      text.textContent = 'Coder: not connected';
+    }
+  } catch {
+    document.getElementById('coder-badge-text').textContent = 'Coder';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// PROVIDERS
+// ══════════════════════════════════════════════════════
+async function loadProviders() {
+  const list = document.getElementById('providers-list');
+  list.innerHTML = `<div class="no-providers"><div class="spinner" style="margin:0 auto 8px"></div>Scanning…</div>`;
+
+  try {
+    const r = await fetch('/api/providers');
+    state.providers = await r.json();
+  } catch (e) {
+    list.innerHTML = `<div class="no-providers">Failed to connect.<br><code>${e.message}</code></div>`;
+    return;
+  }
+
+  if (!state.providers.length) {
+    list.innerHTML = `<div class="no-providers">No providers found.<br>Start <code>ollama serve</code><br>or set <code>ANTHROPIC_API_KEY</code>.</div>`;
+    updateProviderLabel();
+    return;
+  }
+
+  list.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'provider-list';
+
+  state.providers.forEach((p, i) => {
+    const isLocal = ['ollama','lmstudio','openai_compatible'].includes(p.type);
+    const card = document.createElement('div');
+    card.className = 'provider-card' + (i === state.selectedProvider ? ' selected' : '');
+    card.dataset.index = i;
+    card.innerHTML = `
+      <div class="pc-header">
+        <span class="pc-name">${p.name}</span>
+        <span class="pc-type ${isLocal ? 'local' : 'cloud'}">${isLocal ? 'local' : 'cloud'}</span>
+      </div>
+      <div class="pc-model">${p.model}</div>`;
+    card.addEventListener('click', () => selectProvider(i));
+    wrap.appendChild(card);
+  });
+
+  list.appendChild(wrap);
+  updateModelSelector();
+  updateProviderLabel();
+}
+
+function selectProvider(index) {
+  state.selectedProvider = index;
+  document.querySelectorAll('.provider-card').forEach((c, i) =>
+    c.classList.toggle('selected', i === index));
+  updateModelSelector();
+  updateProviderLabel();
+}
+
+function updateModelSelector() {
+  const selector = document.getElementById('model-selector');
+  const select   = document.getElementById('model-select');
+  const p = state.providers[state.selectedProvider];
+  if (!p || !p.models || p.models.length <= 1) {
+    selector.classList.remove('visible');
+    return;
+  }
+  selector.classList.add('visible');
+  select.innerHTML = p.models.map(m =>
+    `<option value="${m}" ${m === p.model ? 'selected' : ''}>${m}</option>`
+  ).join('');
+}
+
+function updateProviderLabel() {
+  const p = state.providers[state.selectedProvider];
+  document.getElementById('provider-label').textContent = p
+    ? `${p.name} · ${p.model}` : 'No provider';
+}
+
+// ══════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════
+function setTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.mode-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('tab-nl').style.display   = tab === 'nl'   ? '' : 'none';
+  document.getElementById('tab-yaml').style.display = tab === 'yaml' ? '' : 'none';
+}
+
+// ══════════════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════════════
+function bindEvents() {
+  document.querySelectorAll('.mode-tab').forEach(t =>
+    t.addEventListener('click', () => setTab(t.dataset.tab)));
+
+  document.getElementById('refresh-providers').addEventListener('click', loadProviders);
+  document.getElementById('generate-btn').addEventListener('click', startGeneration);
+  document.getElementById('clear-btn').addEventListener('click', clearOutput);
+  document.getElementById('download-btn').addEventListener('click', downloadFiles);
+
+  // Cmd/Ctrl+Enter to generate
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      startGeneration();
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// GENERATION
+// ══════════════════════════════════════════════════════
+async function startGeneration() {
+  if (state.generating) return;
+
+  const input = state.currentTab === 'nl'
+    ? document.getElementById('nl-input').value.trim()
+    : document.getElementById('yaml-input').value.trim();
+
+  if (!input) { flashInput(); return; }
+  if (!state.providers.length) { setStatus('error', 'No provider available'); return; }
+
+  const modelSelect = document.getElementById('model-select');
+  const modelOverride = document.getElementById('model-selector').classList.contains('visible')
+    ? modelSelect.value : null;
+
+  const body = {
+    input,
+    provider_index: state.selectedProvider,
+    model: modelOverride,
+    push_to_coder: document.getElementById('push-toggle').checked,
+  };
+
+  // Reset
+  state.generating = true;
+  state.generatedFiles = {};
+  clearAlerts();
+  hideSpecCard();
+  setPlaceholder(false);
+  document.getElementById('hcl-pre').style.display = '';
+  document.getElementById('hcl-code').textContent = '';
+  document.getElementById('hcl-code').removeAttribute('data-highlighted');
+  setFileTabs([]);
+  setStatus('generating', 'Generating…');
+  document.getElementById('generate-btn').disabled = true;
+  document.getElementById('download-btn').style.display = 'none';
+  document.getElementById('push-btn').style.display = 'none';
+
+  const title = document.getElementById('output-title');
+  title.className = 'output-label live';
+  title.textContent = `Generating via ${state.providers[state.selectedProvider]?.name}…`;
+
+  let tokenCount = 0;
+  let rawHcl = '';
+
+  try {
+    const resp = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(err.detail || resp.statusText);
+    }
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        let evt;
+        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+
+        if (evt.type === 'spec') {
+          showSpecCard(evt.spec);
+        } else if (evt.type === 'token') {
+          rawHcl += evt.content;
+          tokenCount++;
+          document.getElementById('token-count').textContent = `${tokenCount} tokens`;
+          if (tokenCount % 20 === 0 || tokenCount <= 5) updateHclView(rawHcl, true);
+        } else if (evt.type === 'status') {
+          setStatus('generating', evt.message);
+        } else if (evt.type === 'done') {
+          state.generatedFiles = evt.files || {};
+          const mainHcl = state.generatedFiles['main.tf'] || rawHcl;
+          updateHclView(mainHcl, false);
+          setFileTabs(Object.keys(state.generatedFiles));
+          showAlerts(evt.warnings || [], evt.errors || []);
+
+          const usedModel = `${evt.provider || ''} / ${evt.model || ''}`.replace(/^\s*\/\s*/, '');
+          title.className = 'output-label';
+          title.textContent = 'Generated Template';
+          setStatus('done', `Done — ${tokenCount} tokens${usedModel ? ' · ' + usedModel : ''}`);
+          document.getElementById('download-btn').style.display = '';
+
+          if (evt.push_result) {
+            const pr = evt.push_result;
+            if (pr.success) addAlert('ok', `Pushed to Coder: ${pr.url}`);
+            else addAlert('error', `Push failed: ${pr.error}`);
+          }
+
+          if (state.coderConfigured && !body.push_to_coder) {
+            document.getElementById('push-btn').style.display = '';
+            document.getElementById('push-btn').onclick = () => pushToCoder();
+          }
+        } else if (evt.type === 'error') {
+          throw new Error(evt.message);
+        }
+      }
+    }
+
+    if (rawHcl && !state.generatedFiles['main.tf']) updateHclView(rawHcl, false);
+
+  } catch (err) {
+    setStatus('error', `Error: ${err.message}`);
+    addAlert('error', err.message);
+    title.className = 'output-label';
+    title.textContent = 'Generation Failed';
+  } finally {
+    state.generating = false;
+    document.getElementById('generate-btn').disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HCL VIEW
+// ══════════════════════════════════════════════════════
+function updateHclView(hcl, streaming) {
+  const code = document.getElementById('hcl-code');
+  const pre  = document.getElementById('hcl-pre');
+  pre.style.display = '';
+
+  if (streaming) {
+    code.textContent = hcl;
+    code.removeAttribute('data-highlighted');
+    document.getElementById('output-body').scrollTop = 9999;
+  } else {
+    code.textContent = hcl;
+    code.removeAttribute('data-highlighted');
+    hljs.highlightElement(code);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// FILE TABS
+// ══════════════════════════════════════════════════════
+function setFileTabs(files) {
+  const el = document.getElementById('file-tabs');
+  el.innerHTML = '';
+  if (!files.length) return;
+  files.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'file-tab' + (f === state.activeFile ? ' active' : '');
+    btn.textContent = f;
+    btn.addEventListener('click', () => switchFile(f));
+    el.appendChild(btn);
+  });
+}
+
+function switchFile(name) {
+  state.activeFile = name;
+  document.querySelectorAll('.file-tab').forEach(t =>
+    t.classList.toggle('active', t.textContent === name));
+  updateHclView(state.generatedFiles[name] || '', false);
+}
+
+// ══════════════════════════════════════════════════════
+// SPEC CARD
+// ══════════════════════════════════════════════════════
+function showSpecCard(spec) {
+  const el = document.getElementById('spec-card');
+  const items = [
+    ['Name',     spec.name],
+    ['Target',   spec.target],
+    ['Language', spec.language || '—'],
+    ['CPU',      spec.cpu + ' cores'],
+    ['Memory',   spec.memory_gb + ' GB'],
+    ['IDE',      spec.ide],
+    ['GPU',      spec.gpu ? '✓ Yes' : '—'],
+    ['Auto-stop',spec.auto_stop_hours + 'h'],
+  ];
+  el.innerHTML = items.map(([k,v]) =>
+    `<div class="spec-item"><span class="spec-key">${k}</span><span class="spec-val">${v}</span></div>`
+  ).join('');
+  el.style.display = 'grid';
+}
+
+function hideSpecCard() {
+  const el = document.getElementById('spec-card');
+  el.style.display = 'none';
+  el.innerHTML = '';
+}
+
+// ══════════════════════════════════════════════════════
+// ALERTS
+// ══════════════════════════════════════════════════════
+function clearAlerts() {
+  const el = document.getElementById('alerts');
+  el.innerHTML = '';
+  el.style.display = 'none';
+}
+
+function addAlert(type, msg) {
+  const el = document.getElementById('alerts');
+  el.style.display = 'flex';
+  const cls  = type === 'ok' ? 'alert-ok' : type === 'error' ? 'alert-err' : 'alert-warn';
+  const icon = type === 'ok' ? '✓' : type === 'error' ? '✗' : '⚠';
+  const div = document.createElement('div');
+  div.className = `alert ${cls}`;
+  div.innerHTML = `<span class="alert-icon">${icon}</span><span>${escHtml(msg)}</span>`;
+  el.appendChild(div);
+}
+
+function showAlerts(warnings, errors) {
+  clearAlerts();
+  errors.forEach(e => addAlert('error', e));
+  warnings.forEach(w => addAlert('warn', w));
+  if (!errors.length && !warnings.length) addAlert('ok', 'HCL validation passed');
+}
+
+// ══════════════════════════════════════════════════════
+// DOWNLOAD + PUSH
+// ══════════════════════════════════════════════════════
+function downloadFiles() {
+  const files = state.generatedFiles;
+  if (!Object.keys(files).length) return;
+  Object.entries(files).forEach(([name, content]) => {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob),
+      download: name,
+    });
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+}
+
+async function pushToCoder() {
+  document.getElementById('push-btn').style.display = 'none';
+  addAlert('warn', 'Enable "Push to Coder" toggle before generating to deploy directly.');
+}
+
+// ══════════════════════════════════════════════════════
+// STATUS + HELPERS
+// ══════════════════════════════════════════════════════
+function setStatus(s, msg) {
+  document.getElementById('status-dot').className = `sb-dot ${s}`;
+  document.getElementById('status-text').textContent = msg;
+}
+
+function clearOutput() {
+  document.getElementById('nl-input').value = '';
+  document.getElementById('yaml-input').value = '';
+  document.getElementById('hcl-code').textContent = '';
+  document.getElementById('hcl-pre').style.display = 'none';
+  setPlaceholder(true);
+  clearAlerts();
+  hideSpecCard();
+  setFileTabs([]);
+  state.generatedFiles = {};
+  document.getElementById('download-btn').style.display = 'none';
+  document.getElementById('push-btn').style.display = 'none';
+  document.getElementById('token-count').textContent = '0 tokens';
+  document.getElementById('output-title').className = 'output-label';
+  document.getElementById('output-title').textContent = 'Output';
+  setStatus('', 'Ready');
+}
+
+function setPlaceholder(v) {
+  document.getElementById('placeholder').style.display = v ? '' : 'none';
+}
+
+function flashInput() {
+  const ta = state.currentTab === 'nl'
+    ? document.getElementById('nl-input')
+    : document.getElementById('yaml-input');
+  ta.style.borderColor = 'var(--red)';
+  ta.style.boxShadow = '0 0 0 3px rgba(255,68,68,.1)';
+  setTimeout(() => { ta.style.borderColor = ''; ta.style.boxShadow = ''; }, 700);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ══════════════════════════════════════════════════════
+// SETTINGS PANEL
+// ══════════════════════════════════════════════════════
+function openSettings() {
+  document.getElementById('shell').style.display = 'none';
+  document.getElementById('settings-view').style.display = 'flex';
+  document.getElementById('settings-btn').classList.add('active');
+  loadSettings();
+  refreshLocalProviderStatus();
+}
+
+function closeSettings() {
+  document.getElementById('settings-view').style.display = 'none';
+  document.getElementById('shell').style.display = 'flex';
+  document.getElementById('settings-btn').classList.remove('active');
+}
+
+async function loadSettings() {
+  try {
+    const r = await fetch('/api/settings');
+    if (!r.ok) return;
+    const data = await r.json();
+
+    for (const [key, info] of Object.entries(data)) {
+      const maskedEl  = document.getElementById(`masked-${key}`);
+      const dotEl     = document.getElementById(`dot-${key}`);
+      const srcEl     = document.getElementById(`src-${key}`);
+      const clearBtn  = document.getElementById(`clear-${key}`);
+
+      if (maskedEl) maskedEl.textContent = info.set ? info.masked : '—';
+      if (dotEl)    dotEl.classList.toggle('set', info.set);
+      if (srcEl)    srcEl.textContent =
+        info.source === 'env'    ? 'from env' :
+        info.source === 'config' ? 'saved'    : 'not set';
+      if (clearBtn) clearBtn.disabled = !info.set;
+    }
+
+    // Coder connection badge
+    const cu  = data['coder_url'];
+    const ct  = data['coder_session_token'];
+    const badge = document.getElementById('coder-connection-badge');
+    if (badge) {
+      if (cu?.set && ct?.set) {
+        badge.className = 'badge badge-green'; badge.textContent = 'Configured';
+      } else if (cu?.set) {
+        badge.className = 'badge badge-orange'; badge.textContent = 'URL only';
+      } else {
+        badge.className = 'badge badge-dim'; badge.textContent = 'Not configured';
+      }
+    }
+  } catch (e) {
+    console.warn('loadSettings error:', e);
+  }
+}
+
+async function saveSetting(key) {
+  const input = document.getElementById(`input-${key}`);
+  const value = input.value.trim();
+  if (!value) {
+    input.style.borderColor = 'var(--red)';
+    input.style.boxShadow   = '0 0 0 3px rgba(255,68,68,.1)';
+    setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 700);
+    return;
+  }
+
+  const saveBtn = input.closest('.pkc-body').querySelector('.btn-save-key');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+
+  try {
+    const r = await fetch('/api/settings', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ key, value }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Save failed');
+
+    input.value = '';
+    input.placeholder = d.masked;
+
+    await loadSettings();
+    await loadProviders();   // refresh sidebar provider list
+
+    saveBtn.textContent = '✓ Saved';
+    saveBtn.style.background = 'var(--green)';
+    setTimeout(() => {
+      saveBtn.textContent = 'Save';
+      saveBtn.style.background = '';
+      saveBtn.disabled = false;
+    }, 1800);
+  } catch (e) {
+    saveBtn.textContent = '✗ Error';
+    saveBtn.style.background = 'var(--red)';
+    setTimeout(() => {
+      saveBtn.textContent = 'Save';
+      saveBtn.style.background = '';
+      saveBtn.disabled = false;
+    }, 2000);
+  }
+}
+
+async function clearSetting(key) {
+  const clearBtn = document.getElementById(`clear-${key}`);
+  if (clearBtn.dataset.confirm !== '1') {
+    clearBtn.dataset.confirm = '1';
+    clearBtn.textContent = 'Really clear?';
+    clearBtn.style.color        = 'var(--red)';
+    clearBtn.style.borderColor  = 'rgba(255,68,68,.4)';
+    setTimeout(() => {
+      clearBtn.dataset.confirm   = '';
+      clearBtn.textContent       = 'Clear';
+      clearBtn.style.color       = '';
+      clearBtn.style.borderColor = '';
+    }, 3000);
+    return;
+  }
+  clearBtn.disabled = true;
+  try {
+    const r = await fetch(`/api/settings/${key}`, { method: 'DELETE' });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.detail); }
+    document.getElementById(`input-${key}`).value = '';
+    const testEl = document.getElementById(`test-${key}`);
+    if (testEl) { testEl.className = 'test-result'; testEl.textContent = ''; }
+    await loadSettings();
+    await loadProviders();
+  } catch (e) {
+    console.warn('clearSetting error:', e);
+  } finally {
+    clearBtn.disabled      = false;
+    clearBtn.dataset.confirm = '';
+    clearBtn.textContent   = 'Clear';
+    clearBtn.style.color   = '';
+    clearBtn.style.borderColor = '';
+  }
+}
+
+async function testSetting(key) {
+  const testEl = document.getElementById(`test-${key}`);
+  const allTestBtns = testEl.closest('.key-actions').querySelectorAll('.btn-test');
+  allTestBtns.forEach(b => b.disabled = true);
+
+  testEl.className = 'test-result pnd';
+  testEl.textContent = 'Testing…';
+
+  try {
+    const r = await fetch('/api/settings/test', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ key }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Test failed');
+    testEl.className = 'test-result ok';
+    testEl.textContent = '✓ ' + d.message;
+  } catch (e) {
+    testEl.className = 'test-result err';
+    testEl.textContent = '✗ ' + (e.message || 'Test failed');
+  } finally {
+    allTestBtns.forEach(b => b.disabled = false);
+  }
+}
+
+async function refreshLocalProviderStatus() {
+  try {
+    const r = await fetch('/api/providers');
+    const providers = await r.json();
+    const typeMap = { ollama: null, lmstudio: null, openai_compatible: null };
+    for (const p of providers) {
+      if (p.type in typeMap) typeMap[p.type] = p.model;
+    }
+    for (const [type, model] of Object.entries(typeMap)) {
+      const dot    = document.getElementById(`local-dot-${type}`);
+      const status = document.getElementById(`local-status-${type}`);
+      const found  = model !== null;
+      if (dot)    dot.classList.toggle('detected', found);
+      if (status) status.textContent = found ? `✓ ${model}` : 'not detected';
+    }
+  } catch {
+    ['ollama','lmstudio','openai_compatible'].forEach(t => {
+      const s = document.getElementById(`local-status-${t}`);
+      if (s) s.textContent = 'error';
+    });
+  }
+}
+</script>
+</body>
+</html>

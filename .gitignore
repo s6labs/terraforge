@@ -1,0 +1,71 @@
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ── Virtual environments ───────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Secrets & credentials (NEVER commit these) ────────────────
+.env
+.env.*
+!.env.example
+*.tfvars
+!*.tfvars.example
+coordinator/terraform/terraform.tfvars
+coordinator/terraform/.terraform/
+coordinator/terraform/.terraform.lock.hcl
+coordinator/terraform/terraform.tfstate
+coordinator/terraform/terraform.tfstate.backup
+coordinator/terraform/crash.log
+
+# ── TerraForge local config (contains API keys) ───────────────
+# ~/.terraforge/config.json is outside this repo, but guard extras:
+config.json
+local_config.json
+
+# ── Generated output ───────────────────────────────────────────
+output/
+*.output/
+
+# ── Test & coverage ────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# ── IDE & editor ───────────────────────────────────────────────
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Terraform state (never commit real state) ─────────────────
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# ── Docker ────────────────────────────────────────────────────
+.docker/
+
+# ── Node (if any tooling added) ───────────────────────────────
+node_modules/

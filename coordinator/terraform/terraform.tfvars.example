@@ -1,0 +1,37 @@
+# TerraForge Coordinator — Terraform Variables
+# Copy to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars — it contains secrets.
+#
+# Quick start:
+#   1. cp terraform.tfvars.example terraform.tfvars
+#   2. Fill in project_id, domain, admin_token, acme_email
+#   3. cd ../scripts && ./deploy.sh
+
+# ── Required ───────────────────────────────────────────────────────
+
+# GCP project ID (gcloud config get-value project)
+project_id = "your-gcp-project-id"
+
+# Coordinator domain (see PRD Q1 for options):
+#   - Buy a domain and point it here after Terraform creates the static IP
+#   - Free: yourname.duckdns.org
+#   - Paid: coordinator.yourdomain.com
+domain = "coordinator.yourdomain.com"
+
+# Admin token for dashboard + API auth.
+# Generate: openssl rand -hex 32
+admin_token = ""  # FILL THIS IN
+
+# Email for Let's Encrypt cert (never spammed)
+acme_email = "you@example.com"
+
+# ── Optional ───────────────────────────────────────────────────────
+
+# name             = "terraforge-coordinator"
+# region           = "us-central1"    # Must be us-central1, us-west1, or us-east1
+# zone             = "us-central1-a"
+# headscale_version = "0.23.0"
+# dns_zone_name    = ""               # Cloud DNS zone for automatic A record
+# allow_ssh        = true             # Set false after first deploy
+# ssh_source_ranges = ["YOUR.IP/32"]  # Restrict SSH to your IP
+# run_health_check = true

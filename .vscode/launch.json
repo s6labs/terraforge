@@ -1,0 +1,67 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "TerraForge: Interactive Mode",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/terraforge.py",
+      "args": ["--interactive"],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "TerraForge: Detect Providers",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/terraforge.py",
+      "args": ["--detect"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "TerraForge: From Spec File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/terraforge.py",
+      "args": ["${input:specFile}", "--output", "${input:outputDir}"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "TerraForge: Natural Language",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/terraforge.py",
+      "args": ["${input:nlDescription}", "--output", "./output"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "TerraForge: Generate + Push to Coder",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/terraforge.py",
+      "args": ["${input:specFile}", "--push"],
+      "console": "integratedTerminal",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "specFile",
+      "type": "promptString",
+      "description": "Path to spec file (.yaml, .json, .md) or natural language description",
+      "default": "./examples/python-ml.yaml"
+    },
+    {
+      "id": "outputDir",
+      "type": "promptString",
+      "description": "Output directory for generated template",
+      "default": "./output"
+    },
+    {
+      "id": "nlDescription",
+      "type": "promptString",
+      "description": "Natural language workspace description",
+      "default": "python fastapi workspace with postgres and redis"
+    }
+  ]
+}

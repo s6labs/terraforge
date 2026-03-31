@@ -1,0 +1,96 @@
+# TerraForge Coordinator — Docker Compose (local dev / reference)
+# For production deployment the cloud_init.sh generates this inline.
+#
+# Usage:
+#   export TF_DOMAIN=coordinator.yourdomain.com
+#   export TF_ADMIN_TOKEN=$(openssl rand -hex 32)
+#   export TF_ACME_EMAIL=you@example.com
+#   docker compose up -d
+
+version: "3.9"
+
+services:
+  headscale:
+    image: headscale/headscale:${HEADSCALE_VERSION:-0.23.0}
+    container_name: headscale
+    restart: unless-stopped
+    command: headscale serve
+    volumes:
+      - ./headscale.yaml:/etc/headscale/config.yaml:ro
+      - headscale_data:/var/lib/headscale
+      - headscale_run:/var/run/headscale
+    expose:
+      - "8080"
+      - "50443"
+      - "9090"
+    networks:
+      - tf
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  terraforge-server:
+    build:
+      context: ../../server
+      dockerfile: Dockerfile
+    image: terraforge/server:dev
+    container_name: terraforge-server
+    restart: unless-stopped
+    environment:
+      TF_ADMIN_TOKEN: ${TF_ADMIN_TOKEN}
+      TF_HEADSCALE_URL: "http://headscale:8080"
+      TF_HEADSCALE_API_KEY: ${TF_HEADSCALE_API_KEY:-}
+      TF_DB_PATH: "/data/terraforge.db"
+      TF_PUBLIC_URL: "http://localhost:8000"
+      TF_ENV: "development"
+    volumes:
+      - tf_data:/data
+      - headscale_run:/var/run/headscale:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      headscale:
+        condition: service_healthy
+    networks:
+      - tf
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      TF_DOMAIN: ${TF_DOMAIN}
+      TF_ACME_EMAIL: ${TF_ACME_EMAIL}
+    depends_on:
+      - headscale
+      - terraforge-server
+    networks:
+      - tf
+
+volumes:
+  headscale_data:
+  headscale_run:
+  tf_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  tf:
+    driver: bridge

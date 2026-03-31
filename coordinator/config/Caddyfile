@@ -1,0 +1,45 @@
+# TerraForge Coordinator — Caddyfile
+# TLS termination via Let's Encrypt + routing between Headscale and TerraForge Server.
+# For local dev: replace {$TF_DOMAIN} with localhost and remove the ACME email block.
+
+{
+    email {$TF_ACME_EMAIL}
+    admin off
+}
+
+{$TF_DOMAIN} {
+
+    # ── Headscale gRPC ─────────────────────────────────────────────
+    # Tailscale clients use gRPC for WireGuard key exchange.
+    @grpc { protocol grpc }
+    reverse_proxy @grpc h2c://headscale:50443
+
+    # ── Headscale REST API + DERP + STUN ───────────────────────────
+    @headscale {
+        path /api/v1/*
+        path /machine/*
+        path /key
+        path /register
+        path /oidc/*
+        path /apple/*
+        path /windows
+        path /windows/*
+        path /derp
+        path /derp/*
+        path /ts2021
+        path /swagger/*
+        path /openapi.yaml
+    }
+    reverse_proxy @headscale headscale:8080
+
+    # ── TerraForge Server ──────────────────────────────────────────
+    # Handles: /health, /join, /api/v1/* (Phase 3), / (landing), /app
+    reverse_proxy terraforge-server:8000
+
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
