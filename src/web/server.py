@@ -22,6 +22,7 @@ from ..parsers.input_parser import parse_input
 from ..core.generator import generate_template
 from ..validators.terraform import validate_hcl
 from ..core.coder_client import push_template, _get_coder_config
+from .graph_service import nl_to_graph
 
 
 app = FastAPI(title="TerraForge", description="AI-Powered Coder Workspace Template Generator")
@@ -399,3 +400,31 @@ async def test_setting(body: SettingTestRequest):
             raise HTTPException(400, f"Coder token test failed: {exc}")
 
     raise HTTPException(400, f"No test available for key: {key}")
+
+
+# ─────────────────────────────────────────────
+# Magic Forge — NL → Infrastructure Graph
+# ─────────────────────────────────────────────
+
+class MagicForgeRequest(BaseModel):
+    prompt: str
+
+
+@app.post("/api/magic-forge")
+async def magic_forge(req: MagicForgeRequest):
+    """
+    Convert a natural-language infrastructure description into a graph
+    (nodes + edges) using Gemini 1.5 Flash.
+
+    Returns:
+        { "title": str, "nodes": [...], "edges": [...] }
+    """
+    if not req.prompt.strip():
+        raise HTTPException(400, "Prompt cannot be empty")
+    try:
+        graph = await nl_to_graph(req.prompt.strip())
+        return JSONResponse(graph)
+    except ValueError as exc:
+        raise HTTPException(503, str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(500, str(exc))

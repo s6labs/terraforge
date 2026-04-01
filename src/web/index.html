@@ -914,6 +914,11 @@ pre.hcl-view {
       Generator
       <span class="phase-badge">Live</span>
     </button>
+    <button class="nav-tab" id="nav-magic-forge" onclick="showMagicForge()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1l1.8 3.6L14 5.6l-3 2.9.7 4.1L8 10.5l-3.7 2.1.7-4.1-3-2.9 4.2-.6z"/></svg>
+      Magic Forge
+      <span class="phase-badge" style="background:rgba(255,107,53,.18);color:var(--orange);">AI</span>
+    </button>
     <button class="nav-tab locked" title="Phase 2: Node Join Flow">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
       Network
@@ -1358,6 +1363,76 @@ pre.hcl-view {
 
 </div><!-- /settings-view -->
 
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAGIC FORGE VIEW — NL → Infrastructure Graph
+═══════════════════════════════════════════════════════════ -->
+<div id="magic-forge-view" style="display:none; position:fixed; top:var(--nav-h); left:0; right:0; bottom:0; background:var(--bg); flex-direction:column; overflow:hidden;">
+
+  <!-- Toolbar -->
+  <div style="height:48px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="var(--orange)" stroke-width="1.6"><path d="M8 1l1.8 3.6L14 5.6l-3 2.9.7 4.1L8 10.5l-3.7 2.1.7-4.1-3-2.9 4.2-.6z"/></svg>
+    <span style="font-weight:600; color:var(--text); font-size:13px;">Magic Forge</span>
+    <span style="color:var(--text-3); font-size:12px;">Natural language → infrastructure diagram</span>
+    <div style="flex:1"></div>
+    <button onclick="hideMagicForge()" style="background:none; border:1px solid var(--border); color:var(--text-2); padding:4px 12px; border-radius:var(--r); font-size:12px; cursor:pointer;">
+      ← Back to Generator
+    </button>
+  </div>
+
+  <!-- Input bar -->
+  <div style="padding:16px 20px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:flex-start; flex-shrink:0;">
+    <textarea id="mf-input"
+      placeholder='Describe your infrastructure — e.g. "A Python FastAPI backend with PostgreSQL, Redis cache, a Celery worker, and an Nginx gateway exposed to the internet"'
+      rows="2"
+      style="flex:1; background:var(--surface-3); border:1px solid var(--border-2); border-radius:var(--r); color:var(--text); font-family:var(--font); font-size:13px; padding:10px 12px; resize:none; outline:none; line-height:1.5;"
+      onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){runMagicForge()}"
+    ></textarea>
+    <button id="mf-btn" onclick="runMagicForge()"
+      style="background:var(--orange); color:#fff; border:none; border-radius:var(--r); padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0; display:flex; align-items:center; gap:6px;">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 1l1.8 3.6L14 5.6l-3 2.9.7 4.1L8 10.5l-3.7 2.1.7-4.1-3-2.9 4.2-.6z"/></svg>
+      Forge
+    </button>
+  </div>
+
+  <!-- Status / error -->
+  <div id="mf-status" style="display:none; padding:6px 20px; font-size:12px; color:var(--text-2); background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0;"></div>
+
+  <!-- Canvas area -->
+  <div id="mf-canvas-wrap" style="flex:1; position:relative; overflow:hidden;">
+
+    <!-- Empty state -->
+    <div id="mf-empty" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--text-3);">
+      <svg width="40" height="40" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" opacity=".4"><path d="M8 1l1.8 3.6L14 5.6l-3 2.9.7 4.1L8 10.5l-3.7 2.1.7-4.1-3-2.9 4.2-.6z"/></svg>
+      <div style="font-size:14px;">Describe your infrastructure above and press <strong>Forge</strong></div>
+      <div style="font-size:12px;">Cmd/Ctrl+Enter to submit</div>
+    </div>
+
+    <!-- SVG canvas (populated by JS) -->
+    <svg id="mf-svg" style="display:none; width:100%; height:100%;">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="var(--border-3)"/>
+        </marker>
+      </defs>
+      <g id="mf-edges"></g>
+      <g id="mf-nodes"></g>
+    </svg>
+
+    <!-- Graph title -->
+    <div id="mf-title" style="display:none; position:absolute; top:16px; left:50%; transform:translateX(-50%); background:var(--surface-2); border:1px solid var(--border); border-radius:var(--r); padding:4px 14px; font-size:12px; font-weight:600; color:var(--text-2); pointer-events:none;"></div>
+
+    <!-- Tooltip -->
+    <div id="mf-tooltip" style="display:none; position:absolute; background:var(--surface-2); border:1px solid var(--border-2); border-radius:var(--r); padding:6px 10px; font-size:11px; color:var(--text); pointer-events:none; max-width:220px; z-index:10; line-height:1.5;"></div>
+
+  </div>
+
+  <!-- Legend -->
+  <div style="height:32px; background:var(--surface); border-top:1px solid var(--border); display:flex; align-items:center; gap:16px; padding:0 20px; flex-shrink:0; overflow-x:auto;">
+    <span style="font-size:11px; color:var(--text-3); flex-shrink:0;">Node types:</span>
+    <script>/* legend injected by JS */</script>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════════════
@@ -2008,6 +2083,222 @@ async function refreshLocalProviderStatus() {
       if (s) s.textContent = 'error';
     });
   }
+}
+
+// ══════════════════════════════════════════════════════
+// MAGIC FORGE — NL → Infrastructure Graph
+// ══════════════════════════════════════════════════════
+
+const NODE_COLORS = {
+  compute:  { fill: '#1a2a1a', stroke: '#00d26a', text: '#00d26a' },
+  database: { fill: '#1a1a2a', stroke: '#4d9fff', text: '#4d9fff' },
+  cache:    { fill: '#2a1a1a', stroke: '#ff6b35', text: '#ff6b35' },
+  queue:    { fill: '#2a2a1a', stroke: '#f5a623', text: '#f5a623' },
+  storage:  { fill: '#1a2a2a', stroke: '#00d2d2', text: '#00d2d2' },
+  network:  { fill: '#1e1e1e', stroke: '#a0a0a0', text: '#a0a0a0' },
+  gateway:  { fill: '#2a1a2a', stroke: '#c084fc', text: '#c084fc' },
+  external: { fill: '#1e1a1a', stroke: '#ff4444', text: '#ff4444' },
+};
+
+function showMagicForge() {
+  document.getElementById('shell').style.display = 'none';
+  const mfv = document.getElementById('magic-forge-view');
+  mfv.style.display = 'flex';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('nav-magic-forge').classList.add('active');
+  document.getElementById('mf-input').focus();
+  _renderLegend();
+}
+
+function hideMagicForge() {
+  document.getElementById('magic-forge-view').style.display = 'none';
+  document.getElementById('shell').style.display = 'flex';
+  document.querySelectorAll('.nav-tab').forEach((t, i) => {
+    if (i === 0) t.classList.add('active');
+    else t.classList.remove('active');
+  });
+}
+
+function _renderLegend() {
+  const bar = document.querySelector('#magic-forge-view > div:last-child');
+  if (bar.querySelector('.mf-legend-item')) return; // already rendered
+  Object.entries(NODE_COLORS).forEach(([type, c]) => {
+    const span = document.createElement('span');
+    span.className = 'mf-legend-item';
+    span.style.cssText = `display:flex;align-items:center;gap:4px;font-size:11px;color:${c.text};flex-shrink:0`;
+    span.innerHTML = `<span style="width:8px;height:8px;border-radius:2px;background:${c.fill};border:1px solid ${c.stroke};display:inline-block"></span>${type}`;
+    bar.appendChild(span);
+  });
+}
+
+async function runMagicForge() {
+  const prompt = document.getElementById('mf-input').value.trim();
+  if (!prompt) { flashMfInput(); return; }
+
+  const btn = document.getElementById('mf-btn');
+  const statusEl = document.getElementById('mf-status');
+
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  _setMfStatus('info', '✦ Forging architecture…');
+
+  try {
+    const resp = await fetch('/api/magic-forge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(err.detail || 'Unknown error');
+    }
+
+    const graph = await resp.json();
+    _renderGraph(graph);
+    _setMfStatus('ok', `✓ ${graph.nodes.length} nodes · ${graph.edges.length} connections`);
+  } catch (e) {
+    _setMfStatus('error', `✗ ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+
+function _setMfStatus(type, msg) {
+  const el = document.getElementById('mf-status');
+  el.style.display = 'block';
+  el.style.color = type === 'error' ? 'var(--red)' : type === 'ok' ? 'var(--green)' : 'var(--text-2)';
+  el.textContent = msg;
+}
+
+function flashMfInput() {
+  const el = document.getElementById('mf-input');
+  el.style.borderColor = 'var(--red)';
+  setTimeout(() => { el.style.borderColor = ''; }, 800);
+}
+
+function _renderGraph(graph) {
+  const svg = document.getElementById('mf-svg');
+  const edgesG = document.getElementById('mf-edges');
+  const nodesG = document.getElementById('mf-nodes');
+  const titleEl = document.getElementById('mf-title');
+  const emptyEl = document.getElementById('mf-empty');
+
+  edgesG.innerHTML = '';
+  nodesG.innerHTML = '';
+
+  const W = svg.clientWidth || 900;
+  const H = svg.clientHeight || 600;
+
+  // Layout: arrange nodes in a circle with a grid fallback
+  const nodes = graph.nodes;
+  const n = nodes.length;
+  const cx = W / 2, cy = H / 2;
+  const r = Math.min(W, H) * 0.36;
+
+  const pos = {};
+  nodes.forEach((node, i) => {
+    const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+    pos[node.id] = {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle),
+    };
+  });
+
+  // Draw edges first (behind nodes)
+  const tooltip = document.getElementById('mf-tooltip');
+  graph.edges.forEach(edge => {
+    const from = pos[edge.source], to = pos[edge.target];
+    if (!from || !to) return;
+
+    // Slight curve for bidirectional-friendly rendering
+    const mx = (from.x + to.x) / 2;
+    const my = (from.y + to.y) / 2;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${from.x},${from.y} Q${mx},${my} ${to.x},${to.y}`);
+    path.setAttribute('stroke', 'var(--border-3)');
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('marker-end', 'url(#arrow)');
+    edgesG.appendChild(path);
+
+    // Edge label
+    if (edge.label) {
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', mx);
+      txt.setAttribute('y', my - 4);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('font-size', '9');
+      txt.setAttribute('fill', 'var(--text-3)');
+      txt.setAttribute('font-family', 'var(--font)');
+      txt.textContent = edge.label;
+      edgesG.appendChild(txt);
+    }
+  });
+
+  // Draw nodes
+  const NODE_W = 100, NODE_H = 44, NODE_R = 8;
+  nodes.forEach(node => {
+    const { x, y } = pos[node.id];
+    const c = NODE_COLORS[node.type] || NODE_COLORS.compute;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('transform', `translate(${x - NODE_W/2},${y - NODE_H/2})`);
+    g.style.cursor = 'pointer';
+
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('width', NODE_W);
+    rect.setAttribute('height', NODE_H);
+    rect.setAttribute('rx', NODE_R);
+    rect.setAttribute('fill', c.fill);
+    rect.setAttribute('stroke', c.stroke);
+    rect.setAttribute('stroke-width', '1.5');
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', NODE_W / 2);
+    label.setAttribute('y', NODE_H / 2 - 4);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('font-size', '11');
+    label.setAttribute('font-weight', '600');
+    label.setAttribute('fill', c.text);
+    label.setAttribute('font-family', 'var(--font)');
+    label.textContent = node.label;
+
+    const sublabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    sublabel.setAttribute('x', NODE_W / 2);
+    sublabel.setAttribute('y', NODE_H / 2 + 10);
+    sublabel.setAttribute('text-anchor', 'middle');
+    sublabel.setAttribute('font-size', '9');
+    sublabel.setAttribute('fill', 'var(--text-3)');
+    sublabel.setAttribute('font-family', 'var(--font)');
+    sublabel.textContent = node.type;
+
+    g.appendChild(rect);
+    g.appendChild(label);
+    g.appendChild(sublabel);
+
+    // Hover tooltip
+    g.addEventListener('mouseenter', (e) => {
+      tooltip.style.display = 'block';
+      tooltip.innerHTML = `<strong style="color:${c.text}">${node.label}</strong><br><span style="color:var(--text-3)">${node.type}</span>${node.detail ? '<br>' + escHtml(node.detail) : ''}`;
+    });
+    g.addEventListener('mousemove', (e) => {
+      const wrap = document.getElementById('mf-canvas-wrap').getBoundingClientRect();
+      tooltip.style.left = (e.clientX - wrap.left + 12) + 'px';
+      tooltip.style.top  = (e.clientY - wrap.top  + 12) + 'px';
+    });
+    g.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
+    nodesG.appendChild(g);
+  });
+
+  // Show canvas, hide empty state
+  emptyEl.style.display = 'none';
+  svg.style.display = 'block';
+  titleEl.style.display = 'block';
+  titleEl.textContent = graph.title || 'Infrastructure Diagram';
 }
 </script>
 </body>
